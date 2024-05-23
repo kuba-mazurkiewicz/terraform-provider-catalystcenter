@@ -1,0 +1,1 @@
+terraform import catalystcenter_control_plane_device.example "<device_management_ip_address>"
