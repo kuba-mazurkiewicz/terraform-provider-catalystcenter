@@ -137,44 +137,45 @@ type YamlConfig struct {
 }
 
 type YamlConfigAttribute struct {
-	ModelName         string                `yaml:"model_name"`
-	ResponseModelName string                `yaml:"response_model_name"`
-	TfName            string                `yaml:"tf_name"`
-	Type              string                `yaml:"type"`
-	ElementType       string                `yaml:"element_type"`
-	DataPath          string                `yaml:"data_path"`
-	ResponseDataPath  string                `yaml:"response_data_path"`
-	Id                bool                  `yaml:"id"`
-	MatchId           bool                  `yaml:"match_id"`
-	Reference         bool                  `yaml:"reference"`
-	RequiresReplace   bool                  `yaml:"requires_replace"`
-	QueryParam        bool                  `yaml:"query_param"`
-	DeleteQueryParam  bool                  `yaml:"delete_query_param"`
-	DataSourceQuery   bool                  `yaml:"data_source_query"`
-	Mandatory         bool                  `yaml:"mandatory"`
-	WriteOnly         bool                  `yaml:"write_only"`
-	ExcludeFromPut    bool                  `yaml:"exclude_from_put"`
-	ExcludeTest       bool                  `yaml:"exclude_test"`
-	ExcludeExample    bool                  `yaml:"exclude_example"`
-	Description       string                `yaml:"description"`
-	Example           string                `yaml:"example"`
-	EnumValues        []string              `yaml:"enum_values"`
-	MinList           int64                 `yaml:"min_list"`
-	MaxList           int64                 `yaml:"max_list"`
-	MinInt            int64                 `yaml:"min_int"`
-	MaxInt            int64                 `yaml:"max_int"`
-	MinFloat          float64               `yaml:"min_float"`
-	MaxFloat          float64               `yaml:"max_float"`
-	StringPatterns    []string              `yaml:"string_patterns"`
-	StringMinLength   int64                 `yaml:"string_min_length"`
-	StringMaxLength   int64                 `yaml:"string_max_length"`
-	DefaultValue      string                `yaml:"default_value"`
-	Value             string                `yaml:"value"`
-	ValueCondition    string                `yaml:"value_condition"`
-	TestValue         string                `yaml:"test_value"`
-	MinimumTestValue  string                `yaml:"minimum_test_value"`
-	TestTags          []string              `yaml:"test_tags"`
-	Attributes        []YamlConfigAttribute `yaml:"attributes"`
+	ModelName            string                `yaml:"model_name"`
+	ResponseModelName    string                `yaml:"response_model_name"`
+	TfName               string                `yaml:"tf_name"`
+	Type                 string                `yaml:"type"`
+	ElementType          string                `yaml:"element_type"`
+	DataPath             string                `yaml:"data_path"`
+	ResponseDataPath     string                `yaml:"response_data_path"`
+	Id                   bool                  `yaml:"id"`
+	MatchId              bool                  `yaml:"match_id"`
+	Reference            bool                  `yaml:"reference"`
+	RequiresReplace      bool                  `yaml:"requires_replace"`
+	QueryParam           bool                  `yaml:"query_param"`
+	DeleteQueryParam     bool                  `yaml:"delete_query_param"`
+	DeleteQueryParamName string                `yaml:"delete_query_param_name"`
+	DataSourceQuery      bool                  `yaml:"data_source_query"`
+	Mandatory            bool                  `yaml:"mandatory"`
+	WriteOnly            bool                  `yaml:"write_only"`
+	ExcludeFromPut       bool                  `yaml:"exclude_from_put"`
+	ExcludeTest          bool                  `yaml:"exclude_test"`
+	ExcludeExample       bool                  `yaml:"exclude_example"`
+	Description          string                `yaml:"description"`
+	Example              string                `yaml:"example"`
+	EnumValues           []string              `yaml:"enum_values"`
+	MinList              int64                 `yaml:"min_list"`
+	MaxList              int64                 `yaml:"max_list"`
+	MinInt               int64                 `yaml:"min_int"`
+	MaxInt               int64                 `yaml:"max_int"`
+	MinFloat             float64               `yaml:"min_float"`
+	MaxFloat             float64               `yaml:"max_float"`
+	StringPatterns       []string              `yaml:"string_patterns"`
+	StringMinLength      int64                 `yaml:"string_min_length"`
+	StringMaxLength      int64                 `yaml:"string_max_length"`
+	DefaultValue         string                `yaml:"default_value"`
+	Value                string                `yaml:"value"`
+	ValueCondition       string                `yaml:"value_condition"`
+	TestValue            string                `yaml:"test_value"`
+	MinimumTestValue     string                `yaml:"minimum_test_value"`
+	TestTags             []string              `yaml:"test_tags"`
+	Attributes           []YamlConfigAttribute `yaml:"attributes"`
 }
 
 // Templating helper function to convert TF name to GO name
@@ -268,6 +269,17 @@ func HasDeleteQueryParam(attributes []YamlConfigAttribute) bool {
 		}
 	}
 	return false
+}
+
+// Templating helper function to return a list of delete query parameters included in attributes
+func DeleteQueryParams(config YamlConfig) []YamlConfigAttribute {
+	r := []YamlConfigAttribute{}
+	for _, attr := range config.Attributes {
+		if attr.DeleteQueryParam {
+			r = append(r, attr)
+		}
+	}
+	return r
 }
 
 // Templating helper function to return the ID attribute
@@ -453,6 +465,7 @@ var functions = template.FuncMap{
 	"hasReference":          HasReference,
 	"hasQueryParam":         HasQueryParam,
 	"hasDeleteQueryParam":   HasDeleteQueryParam,
+	"deleteQueryParams":     DeleteQueryParams,
 	"getId":                 GetId,
 	"getMatchId":            GetMatchId,
 	"getQueryParam":         GetQueryParam,

@@ -603,8 +603,17 @@ func (r *{{camelCase .Name}}Resource) Delete(ctx context.Context, req resource.D
 	{{- else if .DeleteIdQueryParam}}
 	res, err := r.client.Delete({{if .DeleteRestEndpoint}}state.getPathDelete(){{else}}state.getPath(){{end}} + "?{{.DeleteIdQueryParam}}=" + url.QueryEscape(state.Id.ValueString()))
 	{{- else if hasDeleteQueryParam .Attributes}}
-		{{- $deleteQueryParam := getDeleteQueryParam .Attributes}}
-	res, err := r.client.Delete({{if .DeleteRestEndpoint}}state.getPathDelete(){{else}}state.getPath(){{end}} + "?{{$deleteQueryParam.TfName}}=" + url.QueryEscape(state.{{toGoName $deleteQueryParam.TfName}}.Value{{$deleteQueryParam.Type}}()))
+	params := ""
+	{{- $first := true}}
+	{{- range $index, $attr := deleteQueryParams .}}
+	{{- if $first}}
+	params += {{if .DeleteQueryParamName}}"?{{$attr.DeleteQueryParamName}}="{{else}}"?{{$attr.ModelName}}="{{end}} + url.QueryEscape(state.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- $first = false}}
+	{{- else}}
+	params += {{if .DeleteQueryParamName}}"&{{$attr.DeleteQueryParamName}}="{{else}}"&{{$attr.ModelName}}="{{end}} + url.QueryEscape(state.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- end}}
+	{{- end}}
+	res, err := r.client.Delete({{if .DeleteRestEndpoint}}state.getPathDelete(){{else}}state.getPath(){{end}} + params)
 	{{- else}}
 	res, err := r.client.Delete({{if .DeleteRestEndpoint}}state.getPathDelete(){{else}}state.getPath(){{end}} + "/" + url.QueryEscape(state.Id.ValueString()))
 	{{- end}}
