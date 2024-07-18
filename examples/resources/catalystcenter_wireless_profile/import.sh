@@ -1,1 +1,1 @@
-terraform import catalystcenter_wireless_profile.example "<id>"
+terraform import catalystcenter_wireless_profile.example "<name>"

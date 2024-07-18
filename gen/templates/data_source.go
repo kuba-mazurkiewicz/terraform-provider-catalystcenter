@@ -65,7 +65,10 @@ func (d *{{camelCase .Name}}DataSource) Schema(ctx context.Context, req datasour
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The id of the object",
-				{{- if not $dataSourceQuery}}
+				{{- if .DataSourceNoId}}
+				Optional:            true,
+				Computed:            true,
+				{{- else if not $dataSourceQuery}}
 				Required:            true,
 				{{- else}}
 				Optional:            true,
@@ -227,8 +230,15 @@ func (d *{{camelCase .Name}}DataSource) Read(ctx context.Context, req datasource
 	{{- if .IdQueryParam}}
 	params += "?{{.IdQueryParam}}=" + url.QueryEscape(config.Id.ValueString())
 	{{- else if and (hasQueryParam .Attributes) (not .GetRequiresId)}}
-		{{- $queryParam := getQueryParam .Attributes}}
-	params += "?{{$queryParam.ModelName}}=" + url.QueryEscape(config.{{toGoName $queryParam.TfName}}.Value{{$queryParam.Type}}())
+	{{- $first := true}}
+	{{- range $index, $attr := queryParams .}}
+	{{- if $first}}
+	params += {{if .QueryParamName}}"?{{$attr.QueryParamName}}="{{else}}"?{{$attr.ModelName}}="{{end}} + url.QueryEscape(config.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- $first = false}}
+	{{- else}}
+	params += {{if .QueryParamName}}"&{{$attr.QueryParamName}}="{{else}}"&{{$attr.ModelName}}="{{end}} + url.QueryEscape(config.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- end}}
+	{{- end}}
 	{{- else if and (not .GetNoId) (not .GetFromAll)}}
 	params += "/" + url.QueryEscape(config.Id.ValueString())
 	{{- end}}

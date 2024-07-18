@@ -1,9 +1,10 @@
 ---
 name: Wireless Profile
 rest_endpoint: /dna/intent/api/v2/wireless/profile
-id_from_query_path: response
-get_from_all: true
-no_data_source: true
+id_from_query_path: response.0
+#no_data_source: true
+no_id_import: true
+data_source_no_id: true
 put_no_id: true
 id_from_query_path_attribute: instanceUuid
 res_description:
@@ -13,6 +14,9 @@ doc_category: Wireless
 attributes:
   - model_name: wirelessProfileName
     tf_name: name
+    response_data_path: response.0.wirelessProfileName
+    query_param: true
+    query_param_name: name
     delete_query_param: true
     delete_query_param_name: name
     type: String
@@ -22,6 +26,7 @@ attributes:
   - model_name: ssidDetails
     type: List
     description: SSID Details
+    response_data_path: response.0.ssidDetails
     attributes:
       - model_name: ssidName
         tf_name: name

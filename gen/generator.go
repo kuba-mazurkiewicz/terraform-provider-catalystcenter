@@ -107,9 +107,11 @@ type YamlConfig struct {
 	GetExtraQueryParams      string                `yaml:"get_extra_query_params"`
 	NoDelete                 bool                  `yaml:"no_delete"`
 	DeleteNoId               bool                  `yaml:"delete_no_id"`
+	DataSourceNoId           bool                  `yaml:"data_source_no_id"`
 	NoUpdate                 bool                  `yaml:"no_update"`
 	NoRead                   bool                  `yaml:"no_read"`
 	NoImport                 bool                  `yaml:"no_import"`
+	NoIdImport               bool                  `yaml:"no_id_import"`
 	PostUpdate               bool                  `yaml:"post_update"`
 	PutCreate                bool                  `yaml:"put_create"`
 	RootList                 bool                  `yaml:"root_list"`
@@ -148,7 +150,10 @@ type YamlConfigAttribute struct {
 	MatchId              bool                  `yaml:"match_id"`
 	Reference            bool                  `yaml:"reference"`
 	RequiresReplace      bool                  `yaml:"requires_replace"`
+	CreateQueryPath      bool                  `yaml:"create_query_path"`
+	QueryParamNoBody     bool                  `yaml:"query_param_no_body"`
 	QueryParam           bool                  `yaml:"query_param"`
+	QueryParamName       string                `yaml:"query_param_name"`
 	DeleteQueryParam     bool                  `yaml:"delete_query_param"`
 	DeleteQueryParamName string                `yaml:"delete_query_param_name"`
 	DataSourceQuery      bool                  `yaml:"data_source_query"`
@@ -280,6 +285,37 @@ func DeleteQueryParams(config YamlConfig) []YamlConfigAttribute {
 		}
 	}
 	return r
+}
+
+// Templating helper function to return a list of query parameters included in attributes
+func QueryParams(config YamlConfig) []YamlConfigAttribute {
+	r := []YamlConfigAttribute{}
+	for _, attr := range config.Attributes {
+		if attr.QueryParam {
+			r = append(r, attr)
+		}
+	}
+	return r
+}
+
+// Templating helper function to return true if create query path included in attributes
+func HasCreateQueryPath(attributes []YamlConfigAttribute) bool {
+	for _, attr := range attributes {
+		if attr.CreateQueryPath {
+			return true
+		}
+	}
+	return false
+}
+
+// Templating helper function to return the create query path attribute
+func GetCreateQueryPath(attributes []YamlConfigAttribute) YamlConfigAttribute {
+	for _, attr := range attributes {
+		if attr.CreateQueryPath {
+			return attr
+		}
+	}
+	return YamlConfigAttribute{}
 }
 
 // Templating helper function to return the ID attribute
@@ -432,11 +468,11 @@ func IsNestedSet(attribute YamlConfigAttribute) bool {
 func ImportAttributes(config YamlConfig) []YamlConfigAttribute {
 	r := []YamlConfigAttribute{}
 	for _, attr := range config.Attributes {
-		if attr.Reference || attr.QueryParam || attr.Id {
+		if attr.Reference || attr.QueryParam || (attr.Id && !config.NoIdImport) {
 			r = append(r, attr)
 		}
 	}
-	if !config.IdFromAttribute {
+	if !config.IdFromAttribute && !config.NoIdImport {
 		attr := YamlConfigAttribute{}
 		attr.ModelName = "id"
 		attr.TfName = "id"
@@ -469,7 +505,10 @@ var functions = template.FuncMap{
 	"getId":                 GetId,
 	"getMatchId":            GetMatchId,
 	"getQueryParam":         GetQueryParam,
+	"queryParams":           QueryParams,
 	"getDeleteQueryParam":   GetDeleteQueryParam,
+	"hasCreateQueryPath":    HasCreateQueryPath,
+	"getCreateQueryPath":    GetCreateQueryPath,
 	"hasDataSourceQuery":    HasDataSourceQuery,
 	"firstPathElement":      FirstPathElement,
 	"remainingPathElements": RemainingPathElements,
