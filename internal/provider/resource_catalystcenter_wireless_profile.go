@@ -224,6 +224,7 @@ func (r *WirelessProfileResource) Update(ctx context.Context, req resource.Updat
 
 	body := plan.toBody(ctx, state)
 	params := ""
+	//s
 	params += "?wirelessProfileName=" + url.QueryEscape(plan.Name.ValueString())
 	res, err := r.client.Put(plan.getPath()+params, body)
 	if err != nil {

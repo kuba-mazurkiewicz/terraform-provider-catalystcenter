@@ -570,16 +570,6 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	{{- if hasCreateQueryPath .Attributes}}
 		{{- $createQueryPath := getCreateQueryPath .Attributes}}
 	params += "/" + url.QueryEscape(plan.{{toGoName $createQueryPath.TfName}}.Value{{$createQueryPath.Type}}())
-	{{- else if hasQueryParam .Attributes}}
-	{{- $first := true}}
-	{{- range $index, $attr := queryParams .}}
-	{{- if $first}}
-	params += "?{{$attr.ModelName}}=" + url.QueryEscape(plan.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
-	{{- $first = false}}
-	{{- else}}
-	params += "&{{$attr.ModelName}}=" + url.QueryEscape(plan.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
-	{{- end}}
-	{{- end}}
 	{{- end}}
 	{{- if .PutIdQueryParam}}
 	params += "?{{.PutIdQueryParam}}=" + url.QueryEscape(plan.Id.ValueString())
@@ -588,11 +578,23 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	res, err := r.client.Post(plan.getPath() + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
 	{{- else if .PutCreate}}
 	res, err := r.client.Put(plan.getPath() + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
-	{{- else if hasQueryParam .Attributes}}
+	{{- else if and (hasQueryParam .Attributes) (not .PutIdQueryParam) (not hasCreateQueryPath .Attributes) }}
+	{{- $first := true}}
+	{{- range $index, $attr := queryParams .}}
+	{{- if $first}}
+	//s
+	params += "?{{$attr.ModelName}}=" + url.QueryEscape(plan.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- $first = false}}
+	{{- else}}
+	params += "&{{$attr.ModelName}}=" + url.QueryEscape(plan.{{toGoName $attr.TfName}}.Value{{$attr.Type}}())
+	{{- end}}
+	{{- end}}
 	res, err := r.client.Put({{if .PutRestEndpoint}}"{{.PutRestEndpoint}}"{{else}}plan.getPath(){{end}} + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
 	{{- else if .PutNoId}}
 	res, err := r.client.Put({{if .PutRestEndpoint}}"{{.PutRestEndpoint}}"{{else}}plan.getPath(){{end}} + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
-	{{- else}}
+	{{- else if .PutIdQueryParam}}
+	res, err := r.client.Put({{if .PutRestEndpoint}}"{{.PutRestEndpoint}}"{{else}}plan.getPath(){{end}} + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
+	{{- else }}
 	res, err := r.client.Put({{if .PutRestEndpoint}}"{{.PutRestEndpoint}}"{{else}}plan.getPath(){{end}} + "/" + url.QueryEscape(plan.Id.ValueString()) + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
 	{{- end}}
 	if err != nil {
