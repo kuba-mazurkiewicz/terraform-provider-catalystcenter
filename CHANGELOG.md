@@ -1,5 +1,6 @@
 ## 0.1.10 (unreleased)
 
+- Add ghz24Policy, ghz6PolicyClientSteering and rsnCipherSuites to `catalystcenter_wireless_enterprise_ssid` resource
 - Add `fabric_provision_device` resource and data source
 - Add `assign_templates_to_tag` resource and data source
 - Add `tag` resource and data source
