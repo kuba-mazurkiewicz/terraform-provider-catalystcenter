@@ -158,7 +158,7 @@ func (r *LANAutomationResource) Schema(ctx context.Context, req resource.SchemaR
 							MarkdownDescription: helpers.NewAttributeDescription("Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type").String,
 							Optional:            true,
 						},
-						"device_management_i_p_address": schema.StringAttribute{
+						"device_management_ip_address": schema.StringAttribute{
 							MarkdownDescription: helpers.NewAttributeDescription("Management IP Address of the device").String,
 							Optional:            true,
 						},
@@ -196,12 +196,12 @@ func (r *LANAutomationResource) Create(ctx context.Context, req resource.CreateR
 	body := plan.toBody(ctx, LANAutomation{})
 
 	params := ""
-	res, err := r.client.Post(plan.getPath()+params, body, func(r *cc.Req) { r.MaxAsyncWaitTime = 120 })
+	res, err := r.client.Post(plan.getPath()+params, body, func(r *cc.Req) { r.NoWait = true })
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (POST), got error: %s, %s", err, res.String()))
 		return
 	}
-	plan.Id = types.StringValue(res.Get("response.id").String())
+	plan.Id = types.StringValue(res.Get("response.taskId").String())
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Create finished successfully", plan.Id.ValueString()))
 
@@ -277,7 +277,6 @@ func (r *LANAutomationResource) Update(ctx context.Context, req resource.UpdateR
 
 // End of section. //template:end update
 
-// Section below is generated&owned by "gen/generator.go". //template:begin delete
 func (r *LANAutomationResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var state LANAutomation
 
@@ -289,8 +288,16 @@ func (r *LANAutomationResource) Delete(ctx context.Context, req resource.DeleteR
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Delete", state.Id.ValueString()))
-	res, err := r.client.Delete(state.getPath() + "/" + url.QueryEscape(state.Id.ValueString()))
+	res, err := r.client.Delete(state.getPathDelete() + "/" + url.QueryEscape(state.Id.ValueString()))
 	if err != nil {
+		// Check if the error message contains "StatusCode 406 (No LAN Automation Session running)"
+		if strings.Contains(err.Error(), "StatusCode 406") {
+			// If 406, remove the resource from the state without reporting an error
+			tflog.Debug(ctx, fmt.Sprintf("%s: Object not found (404), removing from state", state.Id.ValueString()))
+			resp.State.RemoveResource(ctx)
+			return
+		}
+
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to delete object (DELETE), got error: %s, %s", err, res.String()))
 		return
 	}
@@ -299,8 +306,6 @@ func (r *LANAutomationResource) Delete(ctx context.Context, req resource.DeleteR
 
 	resp.State.RemoveResource(ctx)
 }
-
-// End of section. //template:end delete
 
 // Section below is generated&owned by "gen/generator.go". //template:begin import
 func (r *LANAutomationResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {

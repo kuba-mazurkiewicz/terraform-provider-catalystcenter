@@ -17,10 +17,7 @@ resource "catalystcenter_lan_automation" "example" {
   discovery_timeout        = 30
   discovery_devices = [
     {
-      device_serial_number          = "FOC2604Y18O"
-      device_host_name              = ""
-      device_site_name_hierarchy    = ""
-      device_management_i_p_address = ""
+      device_serial_number = "FOC2604Y18O"
     }
   ]
 }

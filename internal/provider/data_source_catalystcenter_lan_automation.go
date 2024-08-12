@@ -140,7 +140,7 @@ func (d *LANAutomationDataSource) Schema(ctx context.Context, req datasource.Sch
 							MarkdownDescription: "Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type",
 							Computed:            true,
 						},
-						"device_management_i_p_address": schema.StringAttribute{
+						"device_management_ip_address": schema.StringAttribute{
 							MarkdownDescription: "Management IP Address of the device",
 							Computed:            true,
 						},

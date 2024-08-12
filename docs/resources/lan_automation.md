@@ -32,10 +32,7 @@ resource "catalystcenter_lan_automation" "example" {
   discovery_timeout        = 30
   discovery_devices = [
     {
-      device_serial_number          = "FOC2604Y18O"
-      device_host_name              = ""
-      device_site_name_hierarchy    = ""
-      device_management_i_p_address = ""
+      device_serial_number = "FOC2604Y18O"
     }
   ]
 }
@@ -79,7 +76,7 @@ Required:
 Optional:
 
 - `device_host_name` (String) Hostname of the device
-- `device_management_i_p_address` (String) Management IP Address of the device
+- `device_management_ip_address` (String) Management IP Address of the device
 - `device_site_name_hierarchy` (String) Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type
 
 

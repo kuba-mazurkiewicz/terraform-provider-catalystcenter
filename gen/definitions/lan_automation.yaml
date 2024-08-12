@@ -1,14 +1,16 @@
 ---
 name: LAN Automation
 rest_endpoint: /dna/intent/api/v2/lan-automation
+delete_rest_endpoint: /dna/intent/api/v1/lan-automation
 get_rest_endpoint: /dna/intent/api/v1/lan-automation/status
 no_update: true
-id_path: response.id
+id_path: response.taskId
+no_wait: true
 doc_category: LAN Automation
 res_description:
   'This resource can Start LAN Automation on resource creation and Stop LAN Automation on resource deletion.
   It invokes V2 LAN Automation Start API, which supports optional auto-stop processing feature based on the provided timeout or a specific device list, or both.'
-max_async_wait_time: 120
+# Manual updates in Delete function to remove resource from state when LAN automation stops automatically - StatusCode 406 (No LAN Automation Session running)"
 test_tags: [LANAUTO]
 attributes:
   - model_name: discoveredDeviceSiteNameHierarchy
@@ -62,7 +64,7 @@ attributes:
         example: MAIN_POOL
   - model_name: multicastEnabled
     data_path: "0"
-    response_data_path: response.0.multicatEnabled
+    response_data_path: response.0.multicastEnabled
     type: Bool
     description: To enable underlay native multicast.
     example: true
@@ -126,9 +128,13 @@ attributes:
       - model_name: deviceHostName
         type: String
         description: Hostname of the device
+        exclude_test: true
       - model_name: deviceSiteNameHierarchy
         type: String
         description: Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type
+        exclude_test: true
       - model_name: deviceManagementIPAddress
+        tf_name: device_management_ip_address
         type: String
         description: Management IP Address of the device
+        exclude_test: true

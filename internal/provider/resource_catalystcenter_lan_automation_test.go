@@ -45,9 +45,6 @@ func TestAccCcLANAutomation(t *testing.T) {
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_level", "2"))
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_timeout", "30"))
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_devices.0.device_serial_number", "FOC2604Y18O"))
-	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_devices.0.device_host_name", ""))
-	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_devices.0.device_site_name_hierarchy", ""))
-	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_lan_automation.test", "discovery_devices.0.device_management_i_p_address", ""))
 
 	var steps []resource.TestStep
 	if os.Getenv("SKIP_MINIMUM_TEST") == "" {
@@ -107,9 +104,6 @@ func testAccCcLANAutomationConfig_all() string {
 	config += `	discovery_timeout = 30` + "\n"
 	config += `	discovery_devices = [{` + "\n"
 	config += `	  device_serial_number = "FOC2604Y18O"` + "\n"
-	config += `	  device_host_name = ""` + "\n"
-	config += `	  device_site_name_hierarchy = ""` + "\n"
-	config += `	  device_management_i_p_address = ""` + "\n"
 	config += `	}]` + "\n"
 	config += `}` + "\n"
 	return config

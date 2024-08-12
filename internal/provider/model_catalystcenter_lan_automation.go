@@ -56,7 +56,7 @@ type LANAutomationDiscoveryDevices struct {
 	DeviceSerialNumber        types.String `tfsdk:"device_serial_number"`
 	DeviceHostName            types.String `tfsdk:"device_host_name"`
 	DeviceSiteNameHierarchy   types.String `tfsdk:"device_site_name_hierarchy"`
-	DeviceManagementIPAddress types.String `tfsdk:"device_management_i_p_address"`
+	DeviceManagementIpAddress types.String `tfsdk:"device_management_ip_address"`
 }
 
 // End of section. //template:end types
@@ -69,6 +69,10 @@ func (data LANAutomation) getPath() string {
 // End of section. //template:end getPath
 
 // Section below is generated&owned by "gen/generator.go". //template:begin getPathDelete
+
+func (data LANAutomation) getPathDelete() string {
+	return "/dna/intent/api/v1/lan-automation"
+}
 
 // End of section. //template:end getPathDelete
 
@@ -141,8 +145,8 @@ func (data LANAutomation) toBody(ctx context.Context, state LANAutomation) strin
 			if !item.DeviceSiteNameHierarchy.IsNull() {
 				itemBody, _ = sjson.Set(itemBody, "deviceSiteNameHierarchy", item.DeviceSiteNameHierarchy.ValueString())
 			}
-			if !item.DeviceManagementIPAddress.IsNull() {
-				itemBody, _ = sjson.Set(itemBody, "deviceManagementIPAddress", item.DeviceManagementIPAddress.ValueString())
+			if !item.DeviceManagementIpAddress.IsNull() {
+				itemBody, _ = sjson.Set(itemBody, "deviceManagementIPAddress", item.DeviceManagementIpAddress.ValueString())
 			}
 			body, _ = sjson.SetRaw(body, "0.discoveryDevices.-1", itemBody)
 		}
@@ -192,7 +196,7 @@ func (data *LANAutomation) fromBody(ctx context.Context, res gjson.Result) {
 			return true
 		})
 	}
-	if value := res.Get("response.0.multicatEnabled"); value.Exists() {
+	if value := res.Get("response.0.multicastEnabled"); value.Exists() {
 		data.MulticastEnabled = types.BoolValue(value.Bool())
 	} else {
 		data.MulticastEnabled = types.BoolNull()
@@ -247,9 +251,9 @@ func (data *LANAutomation) fromBody(ctx context.Context, res gjson.Result) {
 				item.DeviceSiteNameHierarchy = types.StringNull()
 			}
 			if cValue := v.Get("deviceManagementIPAddress"); cValue.Exists() {
-				item.DeviceManagementIPAddress = types.StringValue(cValue.String())
+				item.DeviceManagementIpAddress = types.StringValue(cValue.String())
 			} else {
-				item.DeviceManagementIPAddress = types.StringNull()
+				item.DeviceManagementIpAddress = types.StringNull()
 			}
 			data.DiscoveryDevices = append(data.DiscoveryDevices, item)
 			return true
@@ -315,7 +319,7 @@ func (data *LANAutomation) updateFromBody(ctx context.Context, res gjson.Result)
 			data.IpPools[i].IpPoolRole = types.StringNull()
 		}
 	}
-	if value := res.Get("response.0.multicatEnabled"); value.Exists() && !data.MulticastEnabled.IsNull() {
+	if value := res.Get("response.0.multicastEnabled"); value.Exists() && !data.MulticastEnabled.IsNull() {
 		data.MulticastEnabled = types.BoolValue(value.Bool())
 	} else {
 		data.MulticastEnabled = types.BoolNull()
@@ -388,10 +392,10 @@ func (data *LANAutomation) updateFromBody(ctx context.Context, res gjson.Result)
 		} else {
 			data.DiscoveryDevices[i].DeviceSiteNameHierarchy = types.StringNull()
 		}
-		if value := r.Get("deviceManagementIPAddress"); value.Exists() && !data.DiscoveryDevices[i].DeviceManagementIPAddress.IsNull() {
-			data.DiscoveryDevices[i].DeviceManagementIPAddress = types.StringValue(value.String())
+		if value := r.Get("deviceManagementIPAddress"); value.Exists() && !data.DiscoveryDevices[i].DeviceManagementIpAddress.IsNull() {
+			data.DiscoveryDevices[i].DeviceManagementIpAddress = types.StringValue(value.String())
 		} else {
-			data.DiscoveryDevices[i].DeviceManagementIPAddress = types.StringNull()
+			data.DiscoveryDevices[i].DeviceManagementIpAddress = types.StringNull()
 		}
 	}
 }

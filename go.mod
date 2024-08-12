@@ -90,3 +90,5 @@ require (
 	google.golang.org/protobuf v1.34.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
 )
+
+replace github.com/netascode/go-catalystcenter => /Users/kmazurki/Downloads/CatalystCenter_As_Code/go-catalystcenter
