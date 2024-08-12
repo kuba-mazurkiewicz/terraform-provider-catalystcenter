@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/CiscoDevNet/terraform-provider-catalystcenter/internal/provider/helpers"
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -60,7 +61,7 @@ func (r *LANAutomationResource) Metadata(ctx context.Context, req resource.Metad
 func (r *LANAutomationResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: helpers.NewAttributeDescription("This resource can Start LAN Automation on resource creation and Stop LAN Automation on resource deletion").String,
+		MarkdownDescription: helpers.NewAttributeDescription("This resource can Start LAN Automation on resource creation and Stop LAN Automation on resource deletion. It invokes V2 LAN Automation Start API, which supports optional auto-stop processing feature based on the provided timeout or a specific device list, or both.").String,
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -126,6 +127,44 @@ func (r *LANAutomationResource) Schema(ctx context.Context, req resource.SchemaR
 				MarkdownDescription: helpers.NewAttributeDescription("Advertise LAN Automation summary route into BGP.").String,
 				Optional:            true,
 			},
+			"discovery_level": schema.Int64Attribute{
+				MarkdownDescription: helpers.NewAttributeDescription("Level below primary seed device upto which the new devices will be LAN Automated by this session, level + seed = tier.").AddIntegerRangeDescription(1, 5).String,
+				Optional:            true,
+				Validators: []validator.Int64{
+					int64validator.Between(1, 5),
+				},
+			},
+			"discovery_timeout": schema.Int64Attribute{
+				MarkdownDescription: helpers.NewAttributeDescription("Discovery timeout in minutes. Until this time, the stop processing will not be triggered. Any device contacting after the provided discovery timeout will not be processed, and a device reset and reload will be attempted to bring it back to the PnP agent state before process completion. Level below primary seed device upto which the new devices will be LAN Automated by this session, level + seed = tier.").AddIntegerRangeDescription(20, 10080).String,
+				Optional:            true,
+				Validators: []validator.Int64{
+					int64validator.Between(20, 10080),
+				},
+			},
+			"discovery_devices": schema.ListNestedAttribute{
+				MarkdownDescription: helpers.NewAttributeDescription("Specific devices that will be LAN Automated in this session").String,
+				Optional:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"device_serial_number": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Serial number of the device").String,
+							Required:            true,
+						},
+						"device_host_name": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Hostname of the device").String,
+							Optional:            true,
+						},
+						"device_site_name_hierarchy": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type").String,
+							Optional:            true,
+						},
+						"device_management_i_p_address": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Management IP Address of the device").String,
+							Optional:            true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -157,7 +196,7 @@ func (r *LANAutomationResource) Create(ctx context.Context, req resource.CreateR
 	body := plan.toBody(ctx, LANAutomation{})
 
 	params := ""
-	res, err := r.client.Post(plan.getPath()+params, body)
+	res, err := r.client.Post(plan.getPath()+params, body, func(r *cc.Req) { r.MaxAsyncWaitTime = 120 })
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (POST), got error: %s, %s", err, res.String()))
 		return

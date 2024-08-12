@@ -31,17 +31,20 @@ import (
 
 // Section below is generated&owned by "gen/generator.go". //template:begin types
 type LANAutomation struct {
-	Id                                types.String           `tfsdk:"id"`
-	DiscoveredDeviceSiteNameHierarchy types.String           `tfsdk:"discovered_device_site_name_hierarchy"`
-	PrimaryDeviceManagementIpAddress  types.String           `tfsdk:"primary_device_management_ip_address"`
-	PeerDeviceManagementIpAddress     types.String           `tfsdk:"peer_device_management_ip_address"`
-	PrimaryDeviceInterfaceNames       types.Set              `tfsdk:"primary_device_interface_names"`
-	IpPools                           []LANAutomationIpPools `tfsdk:"ip_pools"`
-	MulticastEnabled                  types.Bool             `tfsdk:"multicast_enabled"`
-	HostNamePrefix                    types.String           `tfsdk:"host_name_prefix"`
-	HostNameFileId                    types.String           `tfsdk:"host_name_file_id"`
-	IsisDomainPassword                types.String           `tfsdk:"isis_domain_password"`
-	RedistributeIsisToBgp             types.Bool             `tfsdk:"redistribute_isis_to_bgp"`
+	Id                                types.String                    `tfsdk:"id"`
+	DiscoveredDeviceSiteNameHierarchy types.String                    `tfsdk:"discovered_device_site_name_hierarchy"`
+	PrimaryDeviceManagementIpAddress  types.String                    `tfsdk:"primary_device_management_ip_address"`
+	PeerDeviceManagementIpAddress     types.String                    `tfsdk:"peer_device_management_ip_address"`
+	PrimaryDeviceInterfaceNames       types.Set                       `tfsdk:"primary_device_interface_names"`
+	IpPools                           []LANAutomationIpPools          `tfsdk:"ip_pools"`
+	MulticastEnabled                  types.Bool                      `tfsdk:"multicast_enabled"`
+	HostNamePrefix                    types.String                    `tfsdk:"host_name_prefix"`
+	HostNameFileId                    types.String                    `tfsdk:"host_name_file_id"`
+	IsisDomainPassword                types.String                    `tfsdk:"isis_domain_password"`
+	RedistributeIsisToBgp             types.Bool                      `tfsdk:"redistribute_isis_to_bgp"`
+	DiscoveryLevel                    types.Int64                     `tfsdk:"discovery_level"`
+	DiscoveryTimeout                  types.Int64                     `tfsdk:"discovery_timeout"`
+	DiscoveryDevices                  []LANAutomationDiscoveryDevices `tfsdk:"discovery_devices"`
 }
 
 type LANAutomationIpPools struct {
@@ -49,11 +52,18 @@ type LANAutomationIpPools struct {
 	IpPoolRole types.String `tfsdk:"ip_pool_role"`
 }
 
+type LANAutomationDiscoveryDevices struct {
+	DeviceSerialNumber        types.String `tfsdk:"device_serial_number"`
+	DeviceHostName            types.String `tfsdk:"device_host_name"`
+	DeviceSiteNameHierarchy   types.String `tfsdk:"device_site_name_hierarchy"`
+	DeviceManagementIPAddress types.String `tfsdk:"device_management_i_p_address"`
+}
+
 // End of section. //template:end types
 
 // Section below is generated&owned by "gen/generator.go". //template:begin getPath
 func (data LANAutomation) getPath() string {
-	return "/dna/intent/api/v1/lan-automation"
+	return "/dna/intent/api/v2/lan-automation"
 }
 
 // End of section. //template:end getPath
@@ -111,6 +121,31 @@ func (data LANAutomation) toBody(ctx context.Context, state LANAutomation) strin
 	}
 	if !data.RedistributeIsisToBgp.IsNull() {
 		body, _ = sjson.Set(body, "0.redistributeIsisToBgp", data.RedistributeIsisToBgp.ValueBool())
+	}
+	if !data.DiscoveryLevel.IsNull() {
+		body, _ = sjson.Set(body, "0.discoveryLevel", data.DiscoveryLevel.ValueInt64())
+	}
+	if !data.DiscoveryTimeout.IsNull() {
+		body, _ = sjson.Set(body, "0.discoveryTimeout", data.DiscoveryTimeout.ValueInt64())
+	}
+	if len(data.DiscoveryDevices) > 0 {
+		body, _ = sjson.Set(body, "0.discoveryDevices", []interface{}{})
+		for _, item := range data.DiscoveryDevices {
+			itemBody := ""
+			if !item.DeviceSerialNumber.IsNull() {
+				itemBody, _ = sjson.Set(itemBody, "deviceSerialNumber", item.DeviceSerialNumber.ValueString())
+			}
+			if !item.DeviceHostName.IsNull() {
+				itemBody, _ = sjson.Set(itemBody, "deviceHostName", item.DeviceHostName.ValueString())
+			}
+			if !item.DeviceSiteNameHierarchy.IsNull() {
+				itemBody, _ = sjson.Set(itemBody, "deviceSiteNameHierarchy", item.DeviceSiteNameHierarchy.ValueString())
+			}
+			if !item.DeviceManagementIPAddress.IsNull() {
+				itemBody, _ = sjson.Set(itemBody, "deviceManagementIPAddress", item.DeviceManagementIPAddress.ValueString())
+			}
+			body, _ = sjson.SetRaw(body, "0.discoveryDevices.-1", itemBody)
+		}
 	}
 	return body
 }
@@ -181,6 +216,44 @@ func (data *LANAutomation) fromBody(ctx context.Context, res gjson.Result) {
 		data.RedistributeIsisToBgp = types.BoolValue(value.Bool())
 	} else {
 		data.RedistributeIsisToBgp = types.BoolNull()
+	}
+	if value := res.Get("response.0.discoveryLevel"); value.Exists() {
+		data.DiscoveryLevel = types.Int64Value(value.Int())
+	} else {
+		data.DiscoveryLevel = types.Int64Null()
+	}
+	if value := res.Get("response.0.discoveryTimeout"); value.Exists() {
+		data.DiscoveryTimeout = types.Int64Value(value.Int())
+	} else {
+		data.DiscoveryTimeout = types.Int64Null()
+	}
+	if value := res.Get("response.0.discoveryDevices"); value.Exists() && len(value.Array()) > 0 {
+		data.DiscoveryDevices = make([]LANAutomationDiscoveryDevices, 0)
+		value.ForEach(func(k, v gjson.Result) bool {
+			item := LANAutomationDiscoveryDevices{}
+			if cValue := v.Get("deviceSerialNumber"); cValue.Exists() {
+				item.DeviceSerialNumber = types.StringValue(cValue.String())
+			} else {
+				item.DeviceSerialNumber = types.StringNull()
+			}
+			if cValue := v.Get("deviceHostName"); cValue.Exists() {
+				item.DeviceHostName = types.StringValue(cValue.String())
+			} else {
+				item.DeviceHostName = types.StringNull()
+			}
+			if cValue := v.Get("deviceSiteNameHierarchy"); cValue.Exists() {
+				item.DeviceSiteNameHierarchy = types.StringValue(cValue.String())
+			} else {
+				item.DeviceSiteNameHierarchy = types.StringNull()
+			}
+			if cValue := v.Get("deviceManagementIPAddress"); cValue.Exists() {
+				item.DeviceManagementIPAddress = types.StringValue(cValue.String())
+			} else {
+				item.DeviceManagementIPAddress = types.StringNull()
+			}
+			data.DiscoveryDevices = append(data.DiscoveryDevices, item)
+			return true
+		})
 	}
 }
 
@@ -267,6 +340,60 @@ func (data *LANAutomation) updateFromBody(ctx context.Context, res gjson.Result)
 	} else {
 		data.RedistributeIsisToBgp = types.BoolNull()
 	}
+	if value := res.Get("response.0.discoveryLevel"); value.Exists() && !data.DiscoveryLevel.IsNull() {
+		data.DiscoveryLevel = types.Int64Value(value.Int())
+	} else {
+		data.DiscoveryLevel = types.Int64Null()
+	}
+	if value := res.Get("response.0.discoveryTimeout"); value.Exists() && !data.DiscoveryTimeout.IsNull() {
+		data.DiscoveryTimeout = types.Int64Value(value.Int())
+	} else {
+		data.DiscoveryTimeout = types.Int64Null()
+	}
+	for i := range data.DiscoveryDevices {
+		keys := [...]string{"deviceSerialNumber"}
+		keyValues := [...]string{data.DiscoveryDevices[i].DeviceSerialNumber.ValueString()}
+
+		var r gjson.Result
+		res.Get("response.0.discoveryDevices").ForEach(
+			func(_, v gjson.Result) bool {
+				found := false
+				for ik := range keys {
+					if v.Get(keys[ik]).String() == keyValues[ik] {
+						found = true
+						continue
+					}
+					found = false
+					break
+				}
+				if found {
+					r = v
+					return false
+				}
+				return true
+			},
+		)
+		if value := r.Get("deviceSerialNumber"); value.Exists() && !data.DiscoveryDevices[i].DeviceSerialNumber.IsNull() {
+			data.DiscoveryDevices[i].DeviceSerialNumber = types.StringValue(value.String())
+		} else {
+			data.DiscoveryDevices[i].DeviceSerialNumber = types.StringNull()
+		}
+		if value := r.Get("deviceHostName"); value.Exists() && !data.DiscoveryDevices[i].DeviceHostName.IsNull() {
+			data.DiscoveryDevices[i].DeviceHostName = types.StringValue(value.String())
+		} else {
+			data.DiscoveryDevices[i].DeviceHostName = types.StringNull()
+		}
+		if value := r.Get("deviceSiteNameHierarchy"); value.Exists() && !data.DiscoveryDevices[i].DeviceSiteNameHierarchy.IsNull() {
+			data.DiscoveryDevices[i].DeviceSiteNameHierarchy = types.StringValue(value.String())
+		} else {
+			data.DiscoveryDevices[i].DeviceSiteNameHierarchy = types.StringNull()
+		}
+		if value := r.Get("deviceManagementIPAddress"); value.Exists() && !data.DiscoveryDevices[i].DeviceManagementIPAddress.IsNull() {
+			data.DiscoveryDevices[i].DeviceManagementIPAddress = types.StringValue(value.String())
+		} else {
+			data.DiscoveryDevices[i].DeviceManagementIPAddress = types.StringNull()
+		}
+	}
 }
 
 // End of section. //template:end updateFromBody
@@ -301,6 +428,15 @@ func (data *LANAutomation) isNull(ctx context.Context, res gjson.Result) bool {
 		return false
 	}
 	if !data.RedistributeIsisToBgp.IsNull() {
+		return false
+	}
+	if !data.DiscoveryLevel.IsNull() {
+		return false
+	}
+	if !data.DiscoveryTimeout.IsNull() {
+		return false
+	}
+	if len(data.DiscoveryDevices) > 0 {
 		return false
 	}
 	return true

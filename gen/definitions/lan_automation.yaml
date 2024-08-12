@@ -1,12 +1,14 @@
 ---
 name: LAN Automation
-rest_endpoint: /dna/intent/api/v1/lan-automation
+rest_endpoint: /dna/intent/api/v2/lan-automation
 get_rest_endpoint: /dna/intent/api/v1/lan-automation/status
 no_update: true
 id_path: response.id
 doc_category: LAN Automation
 res_description:
-  'This resource can Start LAN Automation on resource creation and Stop LAN Automation on resource deletion'
+  'This resource can Start LAN Automation on resource creation and Stop LAN Automation on resource deletion.
+  It invokes V2 LAN Automation Start API, which supports optional auto-stop processing feature based on the provided timeout or a specific device list, or both.'
+max_async_wait_time: 120
 test_tags: [LANAUTO]
 attributes:
   - model_name: discoveredDeviceSiteNameHierarchy
@@ -90,3 +92,43 @@ attributes:
     type: Bool
     description: Advertise LAN Automation summary route into BGP. 
     example: true
+  - model_name: discoveryLevel
+    data_path: "0"
+    response_data_path: response.0.discoveryLevel
+    type: Int64
+    min_int: 1
+    max_int: 5
+    description: Level below primary seed device upto which the new devices will be LAN Automated by this session, level + seed = tier.
+    example: 2
+  - model_name: discoveryTimeout
+    data_path: "0"
+    response_data_path: response.0.discoveryTimeout
+    type: Int64
+    min_int: 20
+    max_int: 10080
+    description: 
+      'Discovery timeout in minutes. Until this time, the stop processing will not be triggered.
+      Any device contacting after the provided discovery timeout will not be processed,
+      and a device reset and reload will be attempted to bring it back to the PnP agent state before process completion.
+      Level below primary seed device upto which the new devices will be LAN Automated by this session, level + seed = tier.'
+    example: 30
+  - model_name: discoveryDevices
+    type: List
+    description: Specific devices that will be LAN Automated in this session
+    data_path: "0"
+    response_data_path: response.0.discoveryDevices
+    attributes:
+      - model_name: deviceSerialNumber
+        type: String
+        id: true
+        description: Serial number of the device
+        example: FOC2604Y18O
+      - model_name: deviceHostName
+        type: String
+        description: Hostname of the device
+      - model_name: deviceSiteNameHierarchy
+        type: String
+        description: Site name hierarchy for the device, must be a child site of the discoveredDeviceSiteNameHierarchy or same if it’s not area type
+      - model_name: deviceManagementIPAddress
+        type: String
+        description: Management IP Address of the device
