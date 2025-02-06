@@ -623,6 +623,7 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 	{{- if not .NoUpdate}}
+	{{- if not .UpdateComputed}}
 
 	body := plan.toBody(ctx, state)
 	params := ""
@@ -653,6 +654,64 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	plan.Id = types.StringValue(res.Get("{{.IdPath}}").String())
 	{{- end}}
 	{{- end}}
+	{{- end}}
+
+	{{- if and .RootList .UpdateComputed}}
+	{{- $items := "" }}
+	{{- range .Attributes}}
+	{{- if isNestedListSet .}}
+	{{- $items = .TfName }}
+	{{- end}}
+	{{- end}}
+
+	// CREATE
+	// Create new objects (objects that have missing IDs in plan)
+	var toCreate, planOwnedIDs {{camelCase .Name}}
+	toCreate.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
+	planOwnedIDs.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
+	// Scan plan for items with no ID
+	for _, v := range plan.{{toGoName $items}} {
+		if v.Id.IsUnknown() || v.Id.IsNull() {
+			toCreate.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, v)
+		} else {
+			planOwnedIDs.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, v)
+		}
+	}
+
+	// UPDATE
+	// Update objects (objects that have different definition in plan and state)
+	var notEqual bool
+	var toUpdate {{camelCase .Name}}
+	toUpdate.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
+
+	for _, valueState := range state.{{toGoName $items}} {
+
+		// Check if the ID from plan exists on list of ID owned by state
+		if keyState, ok := planOwnedIDs[valueState.Id.ValueString()]; ok {
+
+			// Check if items in state and plan are qual
+			notEqual, diags = helpers.IsConfigUpdatingAt(ctx, req.Plan, req.State, path.Root("{{$items}}").AtMapKey(keyState))
+			if diags != nil {
+				resp.Diagnostics.Append(diags...)
+				diags = resp.State.Set(ctx, &state)
+				resp.Diagnostics.Append(diags...)
+				return
+			}
+
+			// If definitions differ, add object to update list
+			if notEqual {
+				toUpdate.{{toGoName $items}}[keyState] = plan.{{toGoName $items}}[keyState]
+			}
+		}
+	}
+
+
+	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create: %v", state.Id.ValueString(), toCreate.PortAssignments))
+	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %v", state.Id.ValueString(), toUpdate.PortAssignments))
+
+
+	{{- end}}
+
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Update finished successfully", plan.Id.ValueString()))
 

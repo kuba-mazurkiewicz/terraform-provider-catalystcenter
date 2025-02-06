@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/CiscoDevNet/terraform-provider-catalystcenter/internal/provider/helpers"
@@ -79,7 +80,7 @@ func (r *FabricPortAssignmentResource) Schema(ctx context.Context, req resource.
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"port_assignments": schema.ListNestedAttribute{
+			"port_assignments": schema.SetNestedAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("List of port assignments in SD-Access fabric").String,
 				Required:            true,
 				NestedObject: schema.NestedAttributeObject{
@@ -208,6 +209,8 @@ func (r *FabricPortAssignmentResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("%v: STATE BEFORE", state))
+
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Read", state.Id.String()))
 
 	params := ""
@@ -221,6 +224,8 @@ func (r *FabricPortAssignmentResource) Read(ctx context.Context, req resource.Re
 		return
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("%s: Read Read Read", res))
+
 	// If every attribute is set to null we are dealing with an import operation and therefore reading all attributes
 	if state.isNull(ctx, res) {
 		state.fromBody(ctx, res)
@@ -232,6 +237,9 @@ func (r *FabricPortAssignmentResource) Read(ctx context.Context, req resource.Re
 
 	diags = resp.State.Set(ctx, &state)
 	resp.Diagnostics.Append(diags...)
+
+	tflog.Debug(ctx, fmt.Sprintf("%v: STATE AFTER", state.PortAssignments))
+
 }
 
 // End of section. //template:end read
@@ -255,12 +263,93 @@ func (r *FabricPortAssignmentResource) Update(ctx context.Context, req resource.
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 
-	body := plan.toBody(ctx, state)
-	params := ""
-	res, err := r.client.Put(plan.getPath()+params, body)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (PUT), got error: %s, %s", err, res.String()))
-		return
+	stateMap := make(map[string]FabricPortAssignmentPortAssignments)
+	planMap := make(map[string]FabricPortAssignmentPortAssignments)
+
+	// Populate state map
+	for _, v := range state.PortAssignments {
+		stateMap[v.InterfaceName.ValueString()] = v // Use interface_name as key
+	}
+
+	// Populate plan map
+	for _, v := range plan.PortAssignments {
+		planMap[v.InterfaceName.ValueString()] = v // Use interface_name as key
+	}
+
+	// UPDATE
+	// Update objects (objects that have different definition in plan and state)
+	var toUpdate FabricPortAssignment
+	toUpdate.PortAssignments = []FabricPortAssignmentPortAssignments{}
+
+	// CREATE
+	// Create new objects (objects that have missing IDs in plan)
+	var toCreate, toCreate2 FabricPortAssignment
+	toCreate.PortAssignments = []FabricPortAssignmentPortAssignments{}
+	toCreate2.PortAssignments = []FabricPortAssignmentPortAssignments{}
+
+	// // Scan plan for items with no ID
+	// for _, v := range plan.PortAssignments {
+	// 	if v.Id.IsUnknown() || v.Id.IsNull() {
+	// 		toCreate.PortAssignments = append(toCreate.PortAssignments, v)
+	// 	}
+	// }
+
+	// Find items to create and update
+	for ifaceName, planItem := range planMap {
+		if stateItem, exists := stateMap[ifaceName]; exists {
+			// Exists in both, check if different
+			if !reflect.DeepEqual(planItem, stateItem) {
+				toUpdate.PortAssignments = append(toUpdate.PortAssignments, planItem)
+			}
+		} else {
+			tflog.Debug(ctx, fmt.Sprintf("%s: DEBUGDEBUG: %v", state.Id.ValueString(), planItem))
+
+			// Exists only in plan → New item
+			toCreate2.PortAssignments = append(toCreate2.PortAssignments, planItem)
+		}
+	}
+
+	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create: %v", state.Id.ValueString(), toCreate.PortAssignments))
+	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create2: %v", state.Id.ValueString(), toCreate2.PortAssignments))
+
+	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %v", state.Id.ValueString(), toUpdate.PortAssignments))
+
+	if len(toCreate2.PortAssignments) > 0 {
+		body := toCreate2.toBody(ctx, FabricPortAssignment{}) // Convert to request body
+		res, err := r.client.Post(plan.getPath(), body)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to create new port assignments (POST), got error: %s, %s", err, res.String()))
+			return
+		}
+
+		// Handle possible error codes
+		errorCode := res.Get("response.errorCode").String()
+		if errorCode == "NCDP10000" {
+			failureReason := res.Get("response.failureReason").String()
+			resp.Diagnostics.AddWarning("Device Unreachability Warning", fmt.Sprintf("Device unreachability detected (error code: %s, reason: %s).", errorCode, failureReason))
+		}
+
+		// Step 2: GET to retrieve newly created IDs
+		params := "?fabricId=" + url.QueryEscape(plan.FabricId.ValueString()) + "&networkDeviceId=" + url.QueryEscape(plan.NetworkDeviceId.ValueString())
+		res, err = r.client.Get(plan.getPath() + params)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object (GET), got error: %s, %s", err, res.String()))
+			return
+		}
+
+		// Populate missing IDs using fromBodyUnknowns
+		plan.fromBodyUnknowns(ctx, res)
+	}
+
+	if len(toUpdate.PortAssignments) > 0 {
+		body := toUpdate.toBody(ctx, FabricPortAssignment{})
+		tflog.Debug(ctx, fmt.Sprintf("%s: BODY TO UPDATE: %v", state.Id.ValueString(), body))
+		params := ""
+		res, err := r.client.Put(plan.getPath()+params, body)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (PUT), got error: %s, %s", err, res.String()))
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Update finished successfully", plan.Id.ValueString()))

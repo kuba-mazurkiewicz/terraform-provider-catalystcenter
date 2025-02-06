@@ -28,10 +28,12 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"text/template"
 	"unicode"
 
+	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 )
 
@@ -105,6 +107,7 @@ type YamlConfig struct {
 	GetFromAll                  bool                  `yaml:"get_from_all"`
 	GetRequiresId               bool                  `yaml:"get_requires_id"`
 	GetExtraQueryParams         string                `yaml:"get_extra_query_params"`
+	SortList                    bool                  `yaml:"sort_list"`
 	NoDelete                    bool                  `yaml:"no_delete"`
 	DataSourceNoId              bool                  `yaml:"data_source_no_id"`
 	DeleteNoId                  bool                  `yaml:"delete_no_id"`
@@ -367,6 +370,16 @@ func GetFromAllPath(config YamlConfig) string {
 	return ""
 }
 
+// SortByAttribute sorts a gjson array based on a specific key.
+func SortByAttribute(array []gjson.Result, key string) []gjson.Result {
+	sort.SliceStable(array, func(i, j int) bool {
+		vi := array[i].Get(key).String()
+		vj := array[j].Get(key).String()
+		return vi < vj
+	})
+	return array
+}
+
 // Templating helper function to return true if type is a list or set without nested elements
 func IsListSet(attribute YamlConfigAttribute) bool {
 	if (attribute.Type == "List" || attribute.Type == "Set") && attribute.ElementType != "" {
@@ -573,6 +586,7 @@ var functions = template.FuncMap{
 	"firstPathElement":         FirstPathElement,
 	"remainingPathElements":    RemainingPathElements,
 	"getFromAllPath":           GetFromAllPath,
+	"sortByAttribute":          SortByAttribute,
 	"isListSet":                IsListSet,
 	"isList":                   IsList,
 	"isSet":                    IsSet,

@@ -20,8 +20,10 @@ package provider
 // Section below is generated&owned by "gen/generator.go". //template:begin imports
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )
@@ -218,6 +220,7 @@ func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.
 			},
 		)
 		if value := r.Get("id"); value.Exists() && !data.PortAssignments[i].Id.IsNull() {
+			tflog.Debug(ctx, fmt.Sprintf("Old value: %s, New value: %s", data.PortAssignments[i].Id.ValueString(), value.String()))
 			data.PortAssignments[i].Id = types.StringValue(value.String())
 		} else {
 			data.PortAssignments[i].Id = types.StringNull()
@@ -233,6 +236,7 @@ func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.
 			data.PortAssignments[i].NetworkDeviceId = types.StringNull()
 		}
 		if value := r.Get("interfaceName"); value.Exists() && !data.PortAssignments[i].InterfaceName.IsNull() {
+			tflog.Debug(ctx, fmt.Sprintf("Old value: %s, New value: %s", data.PortAssignments[i].InterfaceName.ValueString(), value.String()))
 			data.PortAssignments[i].InterfaceName = types.StringValue(value.String())
 		} else {
 			data.PortAssignments[i].InterfaceName = types.StringNull()
@@ -243,6 +247,7 @@ func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.
 			data.PortAssignments[i].ConnectedDeviceType = types.StringNull()
 		}
 		if value := r.Get("dataVlanName"); value.Exists() && !data.PortAssignments[i].DataVlanName.IsNull() {
+			tflog.Debug(ctx, fmt.Sprintf("Old value: %s, New value: %s", data.PortAssignments[i].DataVlanName.ValueString(), value.String()))
 			data.PortAssignments[i].DataVlanName = types.StringValue(value.String())
 		} else {
 			data.PortAssignments[i].DataVlanName = types.StringNull()
@@ -267,6 +272,8 @@ func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.
 		} else {
 			data.PortAssignments[i].InterfaceDescription = types.StringNull()
 		}
+		tflog.Debug(ctx, fmt.Sprintf("Matching port assignment: %+v", data.PortAssignments[i]))
+
 	}
 }
 
