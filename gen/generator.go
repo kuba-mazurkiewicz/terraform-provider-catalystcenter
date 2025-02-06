@@ -105,6 +105,7 @@ type YamlConfig struct {
 	GetFromAll                  bool                  `yaml:"get_from_all"`
 	GetRequiresId               bool                  `yaml:"get_requires_id"`
 	GetExtraQueryParams         string                `yaml:"get_extra_query_params"`
+	SortList                    bool                  `yaml:"sort_list"`
 	NoDelete                    bool                  `yaml:"no_delete"`
 	DataSourceNoId              bool                  `yaml:"data_source_no_id"`
 	DeleteNoId                  bool                  `yaml:"delete_no_id"`
@@ -167,6 +168,7 @@ type YamlConfigAttribute struct {
 	QueryParamNoBody     bool                  `yaml:"query_param_no_body"`
 	Mandatory            bool                  `yaml:"mandatory"`
 	Computed             bool                  `yaml:"computed"`
+	ComputedRefreshValue bool                  `yaml:"computed_refresh_value"`
 	WriteOnly            bool                  `yaml:"write_only"`
 	ExcludeFromPut       bool                  `yaml:"exclude_from_put"`
 	ExcludeTest          bool                  `yaml:"exclude_test"`
@@ -280,6 +282,21 @@ func HasDeleteQueryParam(attributes []YamlConfigAttribute) bool {
 	for _, attr := range attributes {
 		if attr.DeleteQueryParam {
 			return true
+		}
+	}
+	return false
+}
+
+// Templating helper function to return true if any attribute is set as compute_refresh_value
+func HasComputedRefreshValue(attributes []YamlConfigAttribute) bool {
+	for _, attr := range attributes {
+		if attr.ComputedRefreshValue {
+			return true
+		}
+		if len(attr.Attributes) > 0 {
+			if HasComputedRefreshValue(attr.Attributes) {
+				return true
+			}
 		}
 	}
 	return false
@@ -570,6 +587,7 @@ var functions = template.FuncMap{
 	"getQueryParam":            GetQueryParam,
 	"getDeleteQueryParam":      GetDeleteQueryParam,
 	"hasDataSourceQuery":       HasDataSourceQuery,
+	"hasComputedRefreshValue":  HasComputedRefreshValue,
 	"firstPathElement":         FirstPathElement,
 	"remainingPathElements":    RemainingPathElements,
 	"getFromAllPath":           GetFromAllPath,
