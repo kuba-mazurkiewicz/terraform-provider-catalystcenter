@@ -143,7 +143,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 					{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 				},
 				{{- end}}
-				{{- if .Computed}}
+				{{- if and .Computed (not (hasComputedRefreshValue .Attributes))}}
 				PlanModifiers: []planmodifier.{{.Type}}{
 					{{snakeCase .Type}}planmodifier.UseStateForUnknown(),
 				},
@@ -173,7 +173,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 							{{- else if eq .Type "Map"}}
 							ElementType:         types.StringType,
 							{{- end}}
-							{{- if or .Id .Reference .Mandatory}}
+							{{- if or (and .Id (not .ComputedRefreshValue)) .Reference .Mandatory }}
 							Required:            true,
 							{{- else if not .Computed}}
 							Optional:            true,
@@ -215,7 +215,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 								{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 							},
 							{{- end}}
-							{{- if .Computed}}
+							{{- if and .Computed (not .ComputedRefreshValue)}}
 							PlanModifiers: []planmodifier.{{.Type}}{
 								{{snakeCase .Type}}planmodifier.UseStateForUnknown(),
 							},
@@ -287,7 +287,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 											{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 										},
 										{{- end}}
-										{{- if .Computed}}
+										{{- if and .Computed (not .ComputedRefreshValue)}}
 										PlanModifiers: []planmodifier.{{.Type}}{
 											{{snakeCase .Type}}planmodifier.UseStateForUnknown(),
 										},
@@ -359,7 +359,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 														{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 													},
 													{{- end}}
-													{{- if .Computed}}
+													{{- if and .Computed (not .ComputedRefreshValue)}}
 													PlanModifiers: []planmodifier.{{.Type}}{
 														{{snakeCase .Type}}planmodifier.UseStateForUnknown(),
 													},
@@ -664,51 +664,166 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	{{- end}}
 	{{- end}}
 
-	// CREATE
-	// Create new objects (objects that have missing IDs in plan)
-	var toCreate, planOwnedIDs {{camelCase .Name}}
-	toCreate.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
-	planOwnedIDs.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
-	// Scan plan for items with no ID
+	// Initialize toDelete, toCreate, and toUpdate with empty slices
+	var toDelete = {{camelCase .Name}}{
+		{{toGoName $items}}: []{{camelCase .Name}}{{toGoName $items}}{},
+	}
+	var toCreate = {{camelCase .Name}}{
+		{{toGoName $items}}: []{{camelCase .Name}}{{toGoName $items}}{},
+	}
+	var toUpdate = {{camelCase .Name}}{
+		{{toGoName $items}}: []{{camelCase .Name}}{{toGoName $items}}{},
+	}
+
+	planMap := make(map[string]{{camelCase .Name}}{{toGoName $items}})
+	stateMap := make(map[string]{{camelCase .Name}}{{toGoName $items}})
+
+	// Populate state map
+	for _, v := range state.{{toGoName $items}} {
+		{{- range .Attributes}}
+		{{- $id := getId .Attributes}}
+		{{- if not (eq (toGoName $id.TfName) "") }}
+		stateMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		{{- end}}
+		{{- end}}
+	}
+
+	// Populate plan map
 	for _, v := range plan.{{toGoName $items}} {
-		if v.Id.IsUnknown() || v.Id.IsNull() {
-			toCreate.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, v)
-		} else {
-			planOwnedIDs.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, v)
+		{{- range .Attributes}}
+		{{- $id := getId .Attributes}}
+		{{- if not (eq (toGoName $id.TfName) "") }}
+		planMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		{{- end}}
+		{{- end}}
+	}
+
+	// Find items to delete (exist in state but not in plan)
+	for stateKey, stateItem := range stateMap {
+		if _, exists := planMap[stateKey]; !exists {
+			// Exists only in state → Needs to be deleted
+			toDelete.{{toGoName $items}} = append(toDelete.{{toGoName $items}}, stateItem)
 		}
+	}
+
+	// Find items to create and update
+	for planKey, planItem := range planMap {
+		if stateItem, exists := stateMap[planKey]; exists {
+			// Exists in both, check if different
+			if !reflect.DeepEqual(planItem, stateItem) {
+				// Update planItem but ensure ID comes from stateItem
+				planItem.Id = stateItem.Id
+				planMap[planKey] = planItem // Store back in planMap
+				toUpdate.{{toGoName $items}} = append(toUpdate.{{toGoName $items}}, planItem)
+			}
+		} else {
+			// Exists only in plan → New item
+			toCreate.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, planItem)
+		}
+	}
+	
+	// DELETE
+	// If there are objects marked to be deleted
+	if len(toDelete.{{toGoName $items}}) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to delete: %d", state.Id.ValueString(), len(toDelete.{{toGoName $items}})))
+		for _, v := range toDelete.{{toGoName $items}} {
+			res, err := r.client.Delete(plan.getPath() + "/" + url.QueryEscape(v.Id.ValueString()))
+			if err != nil {
+			{{- if .DeviceUnreachabilityWarning}}
+				errorCode := res.Get("response.errorCode").String()
+				if errorCode == "NCDP10000" {
+					// Log a warning and continue execution when device is unreachable
+					failureReason := res.Get("response.failureReason").String()
+					resp.Diagnostics.AddWarning("Device Unreachability Warning", fmt.Sprintf("Device unreachability detected (error code: %s, reason %s).", errorCode, failureReason))
+				} else {
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to delete object (%s), got error: %s, %s", "DELETE", err, res.String()))
+					return
+				}
+			{{- else}}
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to delete object (%s), got error: %s, %s", "DELETE", err, res.String()))
+				return
+			{{- end}}
+			}
+		}
+	}
+
+	// CREATE
+	// If there are objects marked for create
+	if len(toCreate.{{toGoName $items}}) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create: %d", state.Id.ValueString(), len(toCreate.{{toGoName $items}})))
+		body := toCreate.toBody(ctx, {{camelCase .Name}}{}) // Convert to request body
+		params := ""
+		{{- if hasCreateQueryPath .Attributes}}
+			{{- $createQueryPath := getCreateQueryPath .Attributes}}
+		params += "/" + url.QueryEscape(plan.{{toGoName $createQueryPath.TfName}}.Value{{$createQueryPath.Type}}())
+		{{- end}}
+		res, err := r.client.Post(plan.getPath() + params, body {{- if .MaxAsyncWaitTime }}, func(r *cc.Req) { r.MaxAsyncWaitTime={{.MaxAsyncWaitTime}} }{{end}})
+		if err != nil {
+		{{- if .DeviceUnreachabilityWarning}}
+			errorCode := res.Get("response.errorCode").String()
+			if errorCode == "NCDP10000" {
+				// Log a warning and continue execution when device is unreachable
+				failureReason := res.Get("response.failureReason").String()
+				resp.Diagnostics.AddWarning("Device Unreachability Warning", fmt.Sprintf("Device unreachability detected (error code: %s, reason %s).", errorCode, failureReason))
+			} else {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (%s), got error: %s, %s", {{- if .PutCreate }} "PUT" {{- else }} "POST" {{- end }}, err, res.String()))
+				return
+			}
+		{{- else}}
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (%s), got error: %s, %s", {{- if .PutCreate }} "PUT" {{- else }} "POST" {{- end }}, err, res.String()))
+			return
+		{{- end}}
+		}
+
+		{{- $queryParams := generateQueryParamString "GET" "plan" .Attributes }}
+
+		{{- if .IdQueryParam}}
+		params += "?{{.IdQueryParam}}=" + url.QueryEscape(plan.Id.ValueString())
+		{{- else if and (hasQueryParam .Attributes) (not .GetRequiresId)}}
+		{{- if $queryParams }}
+		params += {{$queryParams}}
+		{{- end}}
+		{{- else if and (not .GetNoId) (not .GetFromAll)}}
+		params += "/" + url.QueryEscape(plan.Id.ValueString())
+		{{- end}}
+		{{- if .GetExtraQueryParams}}
+		params += "{{.GetExtraQueryParams}}"
+		{{- end}}
+		res, err = r.client.Get({{if .GetRestEndpoint}}"{{.GetRestEndpoint}}"{{else}}plan.getPath(){{end}} + params)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object (GET), got error: %s, %s", err, res.String()))
+			return
+		}
+
+		// Populate missing IDs using fromBodyUnknowns
+		plan.fromBodyUnknowns(ctx, res)
 	}
 
 	// UPDATE
 	// Update objects (objects that have different definition in plan and state)
-	var notEqual bool
-	var toUpdate {{camelCase .Name}}
-	toUpdate.{{toGoName $items}} = []{{camelCase .Name}}{{toGoName $items}}{}
-
-	for _, valueState := range state.{{toGoName $items}} {
-
-		// Check if the ID from plan exists on list of ID owned by state
-		if keyState, ok := planOwnedIDs[valueState.Id.ValueString()]; ok {
-
-			// Check if items in state and plan are qual
-			notEqual, diags = helpers.IsConfigUpdatingAt(ctx, req.Plan, req.State, path.Root("{{$items}}").AtMapKey(keyState))
-			if diags != nil {
-				resp.Diagnostics.Append(diags...)
-				diags = resp.State.Set(ctx, &state)
-				resp.Diagnostics.Append(diags...)
-				return
+	if len(toUpdate.{{toGoName $items}}) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %d", state.Id.ValueString(), len(toUpdate.{{toGoName $items}})))
+		// Sync updated IDs back to plan
+		for i := range plan.{{toGoName $items}} {
+			{{- range .Attributes}}
+			{{- $id := getId .Attributes}}
+			{{- if not (eq (toGoName $id.TfName) "") }}
+			planKey := plan.{{toGoName $items}}[i]{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}
+			if updatedItem, exists := planMap[planKey]; exists {
+				plan.{{toGoName $items}}[i] = updatedItem // Apply the updated version with correct ID
 			}
+			{{- end}}
+			{{- end}}
+		}
 
-			// If definitions differ, add object to update list
-			if notEqual {
-				toUpdate.{{toGoName $items}}[keyState] = plan.{{toGoName $items}}[keyState]
-			}
+		body := toUpdate.toBody(ctx, {{camelCase .Name}}{})
+		params := ""
+		res, err := r.client.Put(plan.getPath()+params, body)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (PUT), got error: %s, %s", err, res.String()))
+			return
 		}
 	}
-
-
-	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create: %v", state.Id.ValueString(), toCreate.PortAssignments))
-	tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %v", state.Id.ValueString(), toUpdate.PortAssignments))
-
 
 	{{- end}}
 

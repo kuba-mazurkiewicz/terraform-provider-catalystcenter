@@ -59,7 +59,7 @@ func (d *FabricPortAssignmentDataSource) Schema(ctx context.Context, req datasou
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "The id of the object",
-				Computed:            true,
+				Required:            true,
 			},
 			"fabric_id": schema.StringAttribute{
 				MarkdownDescription: "ID of the fabric the device is assigned to",

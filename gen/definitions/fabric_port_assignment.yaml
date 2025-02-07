@@ -2,11 +2,8 @@
 name: Fabric Port Assignment
 rest_endpoint: /dna/intent/api/v1/sda/portAssignments
 res_description: Manages port assignments in SD-Access fabric.
-no_import: true
 root_list: true
 update_computed: true
-data_source_no_id: true
-sort_list: true
 id_from_attribute: true
 skip_minimum_test: true
 device_unreachability_warning: true
@@ -41,6 +38,7 @@ attributes:
       - model_name: id
         type: String
         computed: true
+        computed_refresh_value: true
         description: ID of the port assignment
         exclude_test: true
       - model_name: fabricId
@@ -55,8 +53,8 @@ attributes:
         type: String
         example: 5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1
       - model_name: interfaceName
-        id: true
         mandatory: true
+        id: true
         type: String
         description: Interface name of the port assignment
         example: GigabitEthernet1/0/2

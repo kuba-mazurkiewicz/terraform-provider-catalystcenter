@@ -69,3 +69,11 @@ Optional:
 Read-Only:
 
 - `id` (String) ID of the port assignment
+
+## Import
+
+Import is supported using the following syntax:
+
+```shell
+terraform import catalystcenter_fabric_port_assignment.example "<fabric_id>,<network_device_id>"
+```
