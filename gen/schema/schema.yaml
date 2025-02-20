@@ -22,7 +22,6 @@ put_create: bool(required=False) # Set to true if the PUT request is used for cr
 update_computed: bool(required=False) # Set to true if the computed attributes should be updated, only relevant if computed is set on one of the attributes
 root_list: bool(required=False) # Set to true if the root element of the data structure is a list
 no_read_prefix: bool(required=False) # Set to true if it is an Open API endpoint put the response is not embeeded into a "response" element
-sort_list: bool(required=False) # Treat `type: List` as strictly ordered. If API ever returns different order, sort elements based on the specified attribute.
 id_path: str(required=False) # Path to the ID in the response (use "." to access nested elements)
 id_from_query_path: str(required=False) # Specify path to ID container if ID is not included in POST response and needs to be resolved via separate GET request
 id_from_query_path_attribute: str(required=False) # Specify attribute name of ID, only relevant if "id_from_query_path" option used, default is "id"

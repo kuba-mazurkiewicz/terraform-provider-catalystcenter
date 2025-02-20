@@ -18,12 +18,7 @@
 package helpers
 
 import (
-	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/attr"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/path"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/tidwall/gjson"
 )
@@ -75,21 +70,4 @@ func GetInt64Set(result []gjson.Result) types.Set {
 		v[r] = types.Int64Value(result[r].Int())
 	}
 	return types.SetValueMust(types.Int64Type, v)
-}
-
-// IsConfigUpdatingAt checks whether the attribute given by the Path is not Equal() between plan and state.
-func IsConfigUpdatingAt(ctx context.Context, tfsdkPlan tfsdk.Plan, tfsdkState tfsdk.State, where path.Path) (bool, diag.Diagnostics) {
-	var pv, sv attr.Value
-
-	diags := tfsdkPlan.GetAttribute(ctx, where, &pv)
-	if diags.HasError() {
-		return false, diags
-	}
-
-	diags = tfsdkState.GetAttribute(ctx, where, &sv)
-	if diags.HasError() {
-		return false, nil
-	}
-
-	return !sv.Equal(pv), diags
 }
