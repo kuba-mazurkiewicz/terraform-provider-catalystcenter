@@ -1,3 +1,7 @@
+## 0.1.20 (unreleased)
+
+- Add support for adding and deleting interfaces under existing `catalystcenter_fabric_port_assignment` resource
+
 ## 0.1.19
 
 - Add update support for individual port assignments with `catalystcenter_fabric_port_assignment` resource
