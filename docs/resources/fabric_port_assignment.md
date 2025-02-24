@@ -35,12 +35,9 @@ resource "catalystcenter_fabric_port_assignment" "example" {
 
 ### Required
 
+- `fabric_id` (String) ID of the fabric the device is assigned to
 - `network_device_id` (String) Network device ID of the port assignment
 - `port_assignments` (Attributes Set) List of port assignments in SD-Access fabric (see [below for nested schema](#nestedatt--port_assignments))
-
-### Optional
-
-- `fabric_id` (String) ID of the fabric the device is assigned to
 
 ### Read-Only
 

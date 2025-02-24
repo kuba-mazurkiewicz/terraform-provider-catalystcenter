@@ -122,6 +122,16 @@ func (data FabricPortAssignment) toBody(ctx context.Context, state FabricPortAss
 func (data *FabricPortAssignment) fromBody(ctx context.Context, res gjson.Result) {
 
 	res = res.Get("response")
+	if value := res.Get(""); value.Exists() {
+		data.FabricId = types.StringValue(value.String())
+	} else {
+		data.FabricId = types.StringNull()
+	}
+	if value := res.Get(""); value.Exists() {
+		data.NetworkDeviceId = types.StringValue(value.String())
+	} else {
+		data.NetworkDeviceId = types.StringNull()
+	}
 	if value := res; value.Exists() && len(value.Array()) > 0 {
 		data.PortAssignments = make([]FabricPortAssignmentPortAssignments, 0)
 		value.ForEach(func(k, v gjson.Result) bool {
@@ -188,6 +198,16 @@ func (data *FabricPortAssignment) fromBody(ctx context.Context, res gjson.Result
 func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.Result) {
 
 	res = res.Get("response")
+	if value := res.Get(""); value.Exists() && !data.FabricId.IsNull() {
+		data.FabricId = types.StringValue(value.String())
+	} else {
+		data.FabricId = types.StringNull()
+	}
+	if value := res.Get(""); value.Exists() && !data.NetworkDeviceId.IsNull() {
+		data.NetworkDeviceId = types.StringValue(value.String())
+	} else {
+		data.NetworkDeviceId = types.StringNull()
+	}
 	for i := range data.PortAssignments {
 		keys := [...]string{"interfaceName"}
 		keyValues := [...]string{data.PortAssignments[i].InterfaceName.ValueString()}
@@ -273,6 +293,20 @@ func (data *FabricPortAssignment) updateFromBody(ctx context.Context, res gjson.
 func (data *FabricPortAssignment) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
 
 	res = res.Get("response")
+	if data.FabricId.IsUnknown() {
+		if value := res.Get(""); value.Exists() {
+			data.FabricId = types.StringValue(value.String())
+		} else {
+			data.FabricId = types.StringNull()
+		}
+	}
+	if data.NetworkDeviceId.IsUnknown() {
+		if value := res.Get(""); value.Exists() {
+			data.NetworkDeviceId = types.StringValue(value.String())
+		} else {
+			data.NetworkDeviceId = types.StringNull()
+		}
+	}
 	for i := range data.PortAssignments {
 		keys := [...]string{"interfaceName"}
 		keyValues := [...]string{data.PortAssignments[i].InterfaceName.ValueString()}

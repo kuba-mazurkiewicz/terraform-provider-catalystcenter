@@ -33,6 +33,8 @@ func TestAccCcFabricPortAssignment(t *testing.T) {
 		t.Skip("skipping test, set environment variable SDA")
 	}
 	var checks []resource.TestCheckFunc
+	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_fabric_port_assignment.test", "fabric_id", "e02d9911-b0a7-435b-bb46-079d877d7b3e"))
+	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_fabric_port_assignment.test", "network_device_id", "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b"))
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_fabric_port_assignment.test", "port_assignments.0.network_device_id", "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"))
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_fabric_port_assignment.test", "port_assignments.0.interface_name", "GigabitEthernet1/0/2"))
 	checks = append(checks, resource.TestCheckResourceAttr("catalystcenter_fabric_port_assignment.test", "port_assignments.0.connected_device_type", "USER_DEVICE"))

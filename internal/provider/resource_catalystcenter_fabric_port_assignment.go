@@ -73,7 +73,10 @@ func (r *FabricPortAssignmentResource) Schema(ctx context.Context, req resource.
 			},
 			"fabric_id": schema.StringAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("ID of the fabric the device is assigned to").String,
-				Optional:            true,
+				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"network_device_id": schema.StringAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("Network device ID of the port assignment").String,
