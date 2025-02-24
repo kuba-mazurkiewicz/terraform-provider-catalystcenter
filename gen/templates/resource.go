@@ -683,7 +683,7 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 		{{- range .Attributes}}
 		{{- $id := getId .Attributes}}
 		{{- if not (eq (toGoName $id.TfName) "") }}
-		stateMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		stateMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()){{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
 		{{- end}}
 		{{- end}}
 	}
@@ -693,7 +693,7 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 		{{- range .Attributes}}
 		{{- $id := getId .Attributes}}
 		{{- if not (eq (toGoName $id.TfName) "") }}
-		planMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		planMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
 		{{- end}}
 		{{- end}}
 	}
@@ -808,12 +808,23 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 			{{- range .Attributes}}
 			{{- $id := getId .Attributes}}
 			{{- if not (eq (toGoName $id.TfName) "") }}
-			planKey := plan.{{toGoName $items}}[i]{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(data.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10), {{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}
+			{{- $noId := not (hasId .Attributes) }}
+			{{- range .Attributes}}
+			{{- if and (not .Computed) (or .Id $noId) }}
+			{{- if eq .Type "Int64"}}
+			planKey := strconv.FormatInt(plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10)
+			{{- else if eq .Type "Bool"}}
+			planKey := strconv.FormatBool(plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueBool())
+			{{- else if eq .Type "String"}}
+			planKey := plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueString()
+			{{- end}}
+			{{- end}}
+			{{- end}}
+			{{- end}}
+			{{- end}}
 			if updatedItem, exists := planMap[planKey]; exists {
 				plan.{{toGoName $items}}[i] = updatedItem // Apply the updated version with correct ID
 			}
-			{{- end}}
-			{{- end}}
 		}
 
 		body := toUpdate.toBody(ctx, {{camelCase .Name}}{})
