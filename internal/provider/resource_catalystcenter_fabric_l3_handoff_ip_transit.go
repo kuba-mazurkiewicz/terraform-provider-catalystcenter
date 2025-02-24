@@ -22,6 +22,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
@@ -79,81 +79,67 @@ func (r *FabricL3HandoffIPTransitResource) Schema(ctx context.Context, req resou
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"fabric_id": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("ID of the fabric this device belongs to").String,
+			"l3_handoff_ip_transits": schema.SetNestedAttribute{
+				MarkdownDescription: helpers.NewAttributeDescription("List of Layer 3 Handoffs with IP Transit").String,
 				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"transit_network_id": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("ID of the transit network of the layer 3 handoff ip transit").String,
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"interface_name": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Interface name of the layer 3 handoff ip transit").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"external_connectivity_ip_pool_name": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"virtual_network_name": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Name of the virtual network associated with this fabric site").String,
-				Required:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"vlan_id": schema.Int64Attribute{
-				MarkdownDescription: helpers.NewAttributeDescription("VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)").String,
-				Required:            true,
-				PlanModifiers: []planmodifier.Int64{
-					int64planmodifier.RequiresReplace(),
-				},
-			},
-			"tcp_mss_adjustment": schema.Int64Attribute{
-				MarkdownDescription: helpers.NewAttributeDescription("TCP maximum segment size (mss) value for the layer 3 handoff. Allowed range is [500-1440]. TCP MSS Adjustment value is applicable for the TCP sessions over both IPv4 and IPv6").AddIntegerRangeDescription(500, 1440).String,
-				Optional:            true,
-				Validators: []validator.Int64{
-					int64validator.Between(500, 1440),
-				},
-			},
-			"local_ip_address": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Local ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"remote_ip_address": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Remote ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"local_ipv6_address": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Local ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
-				},
-			},
-			"remote_ipv6_address": schema.StringAttribute{
-				MarkdownDescription: helpers.NewAttributeDescription("Remote ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
-				Optional:            true,
-				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("ID of the layer 3 handoff ip transit").String,
+							Computed:            true,
+						},
+						"fabric_id": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("ID of the fabric this device belongs to").String,
+							Required:            true,
+						},
+						"transit_network_id": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("ID of the transit network of the layer 3 handoff ip transit").String,
+							Required:            true,
+						},
+						"network_device_id": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Network device ID of the fabric device").String,
+							Required:            true,
+						},
+						"interface_name": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Interface name of the layer 3 handoff ip transit").String,
+							Optional:            true,
+						},
+						"external_connectivity_ip_pool_name": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer").String,
+							Optional:            true,
+						},
+						"virtual_network_name": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Name of the virtual network associated with this fabric site").String,
+							Required:            true,
+						},
+						"vlan_id": schema.Int64Attribute{
+							MarkdownDescription: helpers.NewAttributeDescription("VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)").String,
+							Required:            true,
+						},
+						"tcp_mss_adjustment": schema.Int64Attribute{
+							MarkdownDescription: helpers.NewAttributeDescription("TCP maximum segment size (mss) value for the layer 3 handoff. Allowed range is [500-1440]. TCP MSS Adjustment value is applicable for the TCP sessions over both IPv4 and IPv6").AddIntegerRangeDescription(500, 1440).String,
+							Optional:            true,
+							Validators: []validator.Int64{
+								int64validator.Between(500, 1440),
+							},
+						},
+						"local_ip_address": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Local ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
+							Optional:            true,
+						},
+						"remote_ip_address": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Remote ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
+							Optional:            true,
+						},
+						"local_ipv6_address": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Local ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
+							Optional:            true,
+						},
+						"remote_ipv6_address": schema.StringAttribute{
+							MarkdownDescription: helpers.NewAttributeDescription("Remote ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name").String,
+							Optional:            true,
+						},
+					},
 				},
 			},
 		},
@@ -199,14 +185,15 @@ func (r *FabricL3HandoffIPTransitResource) Create(ctx context.Context, req resou
 			return
 		}
 	}
+	plan.Id = types.StringValue(fmt.Sprint(plan.NetworkDeviceId.ValueString()))
 	params = ""
-	params += "?networkDeviceId=" + url.QueryEscape(plan.NetworkDeviceId.ValueString()) + "&fabricId=" + url.QueryEscape(plan.FabricId.ValueString())
+	params += "?=" + url.QueryEscape(plan.NetworkDeviceId.ValueString())
 	res, err = r.client.Get(plan.getPath() + params)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object (GET), got error: %s, %s", err, res.String()))
 		return
 	}
-	plan.Id = types.StringValue(res.Get("response.#(vlanId==\"" + strconv.FormatInt(plan.VlanId.ValueInt64(), 10) + "\").id").String())
+	plan.fromBodyUnknowns(ctx, res)
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Create finished successfully", plan.Id.ValueString()))
 
@@ -230,7 +217,7 @@ func (r *FabricL3HandoffIPTransitResource) Read(ctx context.Context, req resourc
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Read", state.Id.String()))
 
 	params := ""
-	params += "?networkDeviceId=" + url.QueryEscape(state.NetworkDeviceId.ValueString()) + "&fabricId=" + url.QueryEscape(state.FabricId.ValueString())
+	params += "?=" + url.QueryEscape(state.NetworkDeviceId.ValueString())
 	res, err := r.client.Get(state.getPath() + params)
 	if err != nil && strings.Contains(err.Error(), "StatusCode 404") {
 		resp.State.RemoveResource(ctx)
@@ -239,7 +226,6 @@ func (r *FabricL3HandoffIPTransitResource) Read(ctx context.Context, req resourc
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object (GET), got error: %s, %s", err, res.String()))
 		return
 	}
-	res = res.Get("response.#(id==\"" + state.Id.ValueString() + "\")")
 
 	// If every attribute is set to null we are dealing with an import operation and therefore reading all attributes
 	if state.isNull(ctx, res) {
@@ -275,12 +261,122 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 
-	body := plan.toBody(ctx, state)
-	params := ""
-	res, err := r.client.Put(plan.getPath()+params, body)
-	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (PUT), got error: %s, %s", err, res.String()))
-		return
+	// Initialize toDelete, toCreate, and toUpdate with empty slices
+	var toDelete = FabricL3HandoffIPTransit{
+		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
+	}
+	var toCreate = FabricL3HandoffIPTransit{
+		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
+	}
+	var toUpdate = FabricL3HandoffIPTransit{
+		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
+	}
+
+	planMap := make(map[string]FabricL3HandoffIPTransitL3HandoffIpTransits)
+	stateMap := make(map[string]FabricL3HandoffIPTransitL3HandoffIpTransits)
+
+	// Populate state map
+	for _, v := range state.L3HandoffIpTransits {
+		stateMap[strconv.FormatInt(v.VlanId.ValueInt64(), 10)] = v
+	}
+
+	// Populate plan map
+	for _, v := range plan.L3HandoffIpTransits {
+		planMap[strconv.FormatInt(v.VlanId.ValueInt64(), 10)] = v
+	}
+
+	// Find items to delete (exist in state but not in plan)
+	for stateKey, stateItem := range stateMap {
+		if _, exists := planMap[stateKey]; !exists {
+			// Exists only in state → Needs to be deleted
+			toDelete.L3HandoffIpTransits = append(toDelete.L3HandoffIpTransits, stateItem)
+		}
+	}
+
+	// Find items to create and update
+	for planKey, planItem := range planMap {
+		if stateItem, exists := stateMap[planKey]; exists {
+			// Exists in both, check if different
+			if !reflect.DeepEqual(planItem, stateItem) {
+				// Update planItem but ensure ID comes from stateItem
+				planItem.Id = stateItem.Id
+				planMap[planKey] = planItem // Store back in planMap
+				toUpdate.L3HandoffIpTransits = append(toUpdate.L3HandoffIpTransits, planItem)
+			}
+		} else {
+			// Exists only in plan → New item
+			toCreate.L3HandoffIpTransits = append(toCreate.L3HandoffIpTransits, planItem)
+		}
+	}
+
+	// DELETE
+	// If there are objects marked to be deleted
+	if len(toDelete.L3HandoffIpTransits) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to delete: %d", state.Id.ValueString(), len(toDelete.L3HandoffIpTransits)))
+		for _, v := range toDelete.L3HandoffIpTransits {
+			res, err := r.client.Delete(plan.getPath() + "/" + url.QueryEscape(v.Id.ValueString()))
+			if err != nil {
+				errorCode := res.Get("response.errorCode").String()
+				if errorCode == "NCDP10000" {
+					// Log a warning and continue execution when device is unreachable
+					failureReason := res.Get("response.failureReason").String()
+					resp.Diagnostics.AddWarning("Device Unreachability Warning", fmt.Sprintf("Device unreachability detected (error code: %s, reason %s).", errorCode, failureReason))
+				} else {
+					resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to delete object (%s), got error: %s, %s", "DELETE", err, res.String()))
+					return
+				}
+			}
+		}
+	}
+
+	// CREATE
+	// If there are objects marked for create
+	if len(toCreate.L3HandoffIpTransits) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to create: %d", state.Id.ValueString(), len(toCreate.L3HandoffIpTransits)))
+		body := toCreate.toBody(ctx, FabricL3HandoffIPTransit{}) // Convert to request body
+		params := ""
+		res, err := r.client.Post(plan.getPath()+params, body)
+		if err != nil {
+			errorCode := res.Get("response.errorCode").String()
+			if errorCode == "NCDP10000" {
+				// Log a warning and continue execution when device is unreachable
+				failureReason := res.Get("response.failureReason").String()
+				resp.Diagnostics.AddWarning("Device Unreachability Warning", fmt.Sprintf("Device unreachability detected (error code: %s, reason %s).", errorCode, failureReason))
+			} else {
+				resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (%s), got error: %s, %s", "POST", err, res.String()))
+				return
+			}
+		}
+		params += "?=" + url.QueryEscape(plan.NetworkDeviceId.ValueString())
+		res, err = r.client.Get(plan.getPath() + params)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object (GET), got error: %s, %s", err, res.String()))
+			return
+		}
+
+		// Populate missing IDs using fromBodyUnknowns
+		plan.fromBodyUnknowns(ctx, res)
+	}
+
+	// UPDATE
+	// Update objects (objects that have different definition in plan and state)
+	if len(toUpdate.L3HandoffIpTransits) > 0 {
+		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %d", state.Id.ValueString(), len(toUpdate.L3HandoffIpTransits)))
+		// Sync updated IDs back to plan
+		for i := range plan.L3HandoffIpTransits {
+			planKey := strconv.FormatInt(plan.L3HandoffIpTransits[i].VlanId.ValueInt64(), 10)
+			if updatedItem, exists := planMap[planKey]; exists {
+				plan.L3HandoffIpTransits[i] = updatedItem // Apply the updated version with correct ID
+			}
+		}
+
+		body := toUpdate.toBody(ctx, FabricL3HandoffIPTransit{})
+		params := ""
+		res, err := r.client.Put(plan.getPath()+params, body)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to configure object (PUT), got error: %s, %s", err, res.String()))
+			return
+		}
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Update finished successfully", plan.Id.ValueString()))
@@ -327,16 +423,15 @@ func (r *FabricL3HandoffIPTransitResource) Delete(ctx context.Context, req resou
 func (r *FabricL3HandoffIPTransitResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	idParts := strings.Split(req.ID, ",")
 
-	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+	if len(idParts) != 1 || idParts[0] == "" {
 		resp.Diagnostics.AddError(
 			"Unexpected Import Identifier",
-			fmt.Sprintf("Expected import identifier with format: <network_device_id>,<fabric_id>,<id>. Got: %q", req.ID),
+			fmt.Sprintf("Expected import identifier with format: <network_device_id>. Got: %q", req.ID),
 		)
 		return
 	}
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("network_device_id"), idParts[0])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("fabric_id"), idParts[1])...)
-	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[2])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), idParts[0])...)
 }
 
 // End of section. //template:end import

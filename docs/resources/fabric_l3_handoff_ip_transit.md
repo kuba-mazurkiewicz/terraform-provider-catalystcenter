@@ -14,15 +14,20 @@ Manages Layer 3 Handoffs with IP Transit in Fabric Devices
 
 ```terraform
 resource "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
-  network_device_id    = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
-  fabric_id            = "c4b85bb2-ce3f-4db9-a32b-e439a388ac2f"
-  transit_network_id   = "d71c847b-e9c2-4f13-928c-223372b72b06"
-  interface_name       = "TenGigabitEthernet1/0/2"
-  virtual_network_name = "SDA_VN1"
-  vlan_id              = 205
-  tcp_mss_adjustment   = 1400
-  local_ip_address     = "10.0.0.1/24"
-  remote_ip_address    = "10.0.0.2/24"
+  network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
+  l3_handoff_ip_transits = [
+    {
+      fabric_id            = "c4b85bb2-ce3f-4db9-a32b-e439a388ac2f"
+      transit_network_id   = "d71c847b-e9c2-4f13-928c-223372b72b06"
+      network_device_id    = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
+      interface_name       = "TenGigabitEthernet1/0/2"
+      virtual_network_name = "SDA_VN1"
+      vlan_id              = 205
+      tcp_mss_adjustment   = 1400
+      local_ip_address     = "10.0.0.1/24"
+      remote_ip_address    = "10.0.0.2/24"
+    }
+  ]
 }
 ```
 
@@ -31,13 +36,25 @@ resource "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
 
 ### Required
 
+- `l3_handoff_ip_transits` (Attributes Set) List of Layer 3 Handoffs with IP Transit (see [below for nested schema](#nestedatt--l3_handoff_ip_transits))
+- `network_device_id` (String) Network device ID of the fabric device
+
+### Read-Only
+
+- `id` (String) The id of the object
+
+<a id="nestedatt--l3_handoff_ip_transits"></a>
+### Nested Schema for `l3_handoff_ip_transits`
+
+Required:
+
 - `fabric_id` (String) ID of the fabric this device belongs to
 - `network_device_id` (String) Network device ID of the fabric device
 - `transit_network_id` (String) ID of the transit network of the layer 3 handoff ip transit
 - `virtual_network_name` (String) Name of the virtual network associated with this fabric site
 - `vlan_id` (Number) VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)
 
-### Optional
+Optional:
 
 - `external_connectivity_ip_pool_name` (String) External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer
 - `interface_name` (String) Interface name of the layer 3 handoff ip transit
@@ -48,14 +65,14 @@ resource "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
 - `tcp_mss_adjustment` (Number) TCP maximum segment size (mss) value for the layer 3 handoff. Allowed range is [500-1440]. TCP MSS Adjustment value is applicable for the TCP sessions over both IPv4 and IPv6
   - Range: `500`-`1440`
 
-### Read-Only
+Read-Only:
 
-- `id` (String) The id of the object
+- `id` (String) ID of the layer 3 handoff ip transit
 
 ## Import
 
 Import is supported using the following syntax:
 
 ```shell
-terraform import catalystcenter_fabric_l3_handoff_ip_transit.example "<network_device_id>,<fabric_id>,<id>"
+terraform import catalystcenter_fabric_l3_handoff_ip_transit.example "<network_device_id>"
 ```

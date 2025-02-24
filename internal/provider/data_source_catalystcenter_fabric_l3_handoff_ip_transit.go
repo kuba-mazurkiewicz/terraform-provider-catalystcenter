@@ -65,49 +65,65 @@ func (d *FabricL3HandoffIPTransitDataSource) Schema(ctx context.Context, req dat
 				MarkdownDescription: "Network device ID of the fabric device",
 				Required:            true,
 			},
-			"fabric_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the fabric this device belongs to",
-				Required:            true,
-			},
-			"transit_network_id": schema.StringAttribute{
-				MarkdownDescription: "ID of the transit network of the layer 3 handoff ip transit",
+			"l3_handoff_ip_transits": schema.SetNestedAttribute{
+				MarkdownDescription: "List of Layer 3 Handoffs with IP Transit",
 				Computed:            true,
-			},
-			"interface_name": schema.StringAttribute{
-				MarkdownDescription: "Interface name of the layer 3 handoff ip transit",
-				Computed:            true,
-			},
-			"external_connectivity_ip_pool_name": schema.StringAttribute{
-				MarkdownDescription: "External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer",
-				Computed:            true,
-			},
-			"virtual_network_name": schema.StringAttribute{
-				MarkdownDescription: "Name of the virtual network associated with this fabric site",
-				Computed:            true,
-			},
-			"vlan_id": schema.Int64Attribute{
-				MarkdownDescription: "VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)",
-				Computed:            true,
-			},
-			"tcp_mss_adjustment": schema.Int64Attribute{
-				MarkdownDescription: "TCP maximum segment size (mss) value for the layer 3 handoff. Allowed range is [500-1440]. TCP MSS Adjustment value is applicable for the TCP sessions over both IPv4 and IPv6",
-				Computed:            true,
-			},
-			"local_ip_address": schema.StringAttribute{
-				MarkdownDescription: "Local ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
-				Computed:            true,
-			},
-			"remote_ip_address": schema.StringAttribute{
-				MarkdownDescription: "Remote ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
-				Computed:            true,
-			},
-			"local_ipv6_address": schema.StringAttribute{
-				MarkdownDescription: "Local ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
-				Computed:            true,
-			},
-			"remote_ipv6_address": schema.StringAttribute{
-				MarkdownDescription: "Remote ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
-				Computed:            true,
+				NestedObject: schema.NestedAttributeObject{
+					Attributes: map[string]schema.Attribute{
+						"id": schema.StringAttribute{
+							MarkdownDescription: "ID of the layer 3 handoff ip transit",
+							Computed:            true,
+						},
+						"fabric_id": schema.StringAttribute{
+							MarkdownDescription: "ID of the fabric this device belongs to",
+							Computed:            true,
+						},
+						"transit_network_id": schema.StringAttribute{
+							MarkdownDescription: "ID of the transit network of the layer 3 handoff ip transit",
+							Computed:            true,
+						},
+						"network_device_id": schema.StringAttribute{
+							MarkdownDescription: "Network device ID of the fabric device",
+							Computed:            true,
+						},
+						"interface_name": schema.StringAttribute{
+							MarkdownDescription: "Interface name of the layer 3 handoff ip transit",
+							Computed:            true,
+						},
+						"external_connectivity_ip_pool_name": schema.StringAttribute{
+							MarkdownDescription: "External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer",
+							Computed:            true,
+						},
+						"virtual_network_name": schema.StringAttribute{
+							MarkdownDescription: "Name of the virtual network associated with this fabric site",
+							Computed:            true,
+						},
+						"vlan_id": schema.Int64Attribute{
+							MarkdownDescription: "VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)",
+							Computed:            true,
+						},
+						"tcp_mss_adjustment": schema.Int64Attribute{
+							MarkdownDescription: "TCP maximum segment size (mss) value for the layer 3 handoff. Allowed range is [500-1440]. TCP MSS Adjustment value is applicable for the TCP sessions over both IPv4 and IPv6",
+							Computed:            true,
+						},
+						"local_ip_address": schema.StringAttribute{
+							MarkdownDescription: "Local ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
+							Computed:            true,
+						},
+						"remote_ip_address": schema.StringAttribute{
+							MarkdownDescription: "Remote ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
+							Computed:            true,
+						},
+						"local_ipv6_address": schema.StringAttribute{
+							MarkdownDescription: "Local ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
+							Computed:            true,
+						},
+						"remote_ipv6_address": schema.StringAttribute{
+							MarkdownDescription: "Remote ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name",
+							Computed:            true,
+						},
+					},
+				},
 			},
 		},
 	}
@@ -137,13 +153,12 @@ func (d *FabricL3HandoffIPTransitDataSource) Read(ctx context.Context, req datas
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Read", config.Id.String()))
 
 	params := ""
-	params += "?networkDeviceId=" + url.QueryEscape(config.NetworkDeviceId.ValueString()) + "&fabricId=" + url.QueryEscape(config.FabricId.ValueString())
+	params += "?=" + url.QueryEscape(config.NetworkDeviceId.ValueString())
 	res, err := d.client.Get(config.getPath() + params)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object, got error: %s", err))
 		return
 	}
-	res = res.Get("response.#(id==\"" + config.Id.ValueString() + "\")")
 
 	config.fromBody(ctx, res)
 

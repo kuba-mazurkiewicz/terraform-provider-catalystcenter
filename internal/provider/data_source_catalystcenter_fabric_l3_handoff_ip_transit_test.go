@@ -33,13 +33,13 @@ func TestAccDataSourceCcFabricL3HandoffIPTransit(t *testing.T) {
 		t.Skip("skipping test, set environment variable SDA")
 	}
 	var checks []resource.TestCheckFunc
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "network_device_id", "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "interface_name", "TenGigabitEthernet1/0/2"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "virtual_network_name", "SDA_VN1"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "vlan_id", "205"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "tcp_mss_adjustment", "1400"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "local_ip_address", "10.0.0.1/24"))
-	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "remote_ip_address", "10.0.0.2/24"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.network_device_id", "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.interface_name", "TenGigabitEthernet1/0/2"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.virtual_network_name", "SDA_VN1"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.vlan_id", "205"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.tcp_mss_adjustment", "1400"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.local_ip_address", "10.0.0.1/24"))
+	checks = append(checks, resource.TestCheckResourceAttr("data.catalystcenter_fabric_l3_handoff_ip_transit.test", "l3_handoff_ip_transits.0.remote_ip_address", "10.0.0.2/24"))
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
@@ -80,21 +80,23 @@ resource "catalystcenter_transit_network" "test" {
 func testAccDataSourceCcFabricL3HandoffIPTransitConfig() string {
 	config := `resource "catalystcenter_fabric_l3_handoff_ip_transit" "test" {` + "\n"
 	config += `	network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"` + "\n"
-	config += `	fabric_id = catalystcenter_fabric_site.test.id` + "\n"
-	config += `	transit_network_id = catalystcenter_transit_network.test.id` + "\n"
-	config += `	interface_name = "TenGigabitEthernet1/0/2"` + "\n"
-	config += `	virtual_network_name = "SDA_VN1"` + "\n"
-	config += `	vlan_id = 205` + "\n"
-	config += `	tcp_mss_adjustment = 1400` + "\n"
-	config += `	local_ip_address = "10.0.0.1/24"` + "\n"
-	config += `	remote_ip_address = "10.0.0.2/24"` + "\n"
+	config += `	l3_handoff_ip_transits = [{` + "\n"
+	config += `	  fabric_id = catalystcenter_fabric_site.test.id` + "\n"
+	config += `	  transit_network_id = catalystcenter_transit_network.test.id` + "\n"
+	config += `	  network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"` + "\n"
+	config += `	  interface_name = "TenGigabitEthernet1/0/2"` + "\n"
+	config += `	  virtual_network_name = "SDA_VN1"` + "\n"
+	config += `	  vlan_id = 205` + "\n"
+	config += `	  tcp_mss_adjustment = 1400` + "\n"
+	config += `	  local_ip_address = "10.0.0.1/24"` + "\n"
+	config += `	  remote_ip_address = "10.0.0.2/24"` + "\n"
+	config += `	}]` + "\n"
 	config += `}` + "\n"
 
 	config += `
 		data "catalystcenter_fabric_l3_handoff_ip_transit" "test" {
 			id = catalystcenter_fabric_l3_handoff_ip_transit.test.id
 			network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
-			fabric_id = catalystcenter_fabric_site.test.id
 		}
 	`
 	return config
