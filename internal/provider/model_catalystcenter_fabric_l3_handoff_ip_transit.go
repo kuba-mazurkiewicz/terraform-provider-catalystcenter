@@ -33,6 +33,7 @@ import (
 type FabricL3HandoffIPTransit struct {
 	Id                  types.String                                  `tfsdk:"id"`
 	NetworkDeviceId     types.String                                  `tfsdk:"network_device_id"`
+	FabricId            types.String                                  `tfsdk:"fabric_id"`
 	L3HandoffIpTransits []FabricL3HandoffIPTransitL3HandoffIpTransits `tfsdk:"l3_handoff_ip_transits"`
 }
 
@@ -75,6 +76,9 @@ func (data FabricL3HandoffIPTransit) toBody(ctx context.Context, state FabricL3H
 	_ = put
 	if !data.NetworkDeviceId.IsNull() {
 		body, _ = sjson.Set(body, "", data.NetworkDeviceId.ValueString())
+	}
+	if !data.FabricId.IsNull() {
+		body, _ = sjson.Set(body, "", data.FabricId.ValueString())
 	}
 	if len(data.L3HandoffIpTransits) > 0 {
 		body, _ = sjson.Set(body, "", []interface{}{})
@@ -349,6 +353,9 @@ func (data *FabricL3HandoffIPTransit) fromBodyUnknowns(ctx context.Context, res 
 
 // Section below is generated&owned by "gen/generator.go". //template:begin isNull
 func (data *FabricL3HandoffIPTransit) isNull(ctx context.Context, res gjson.Result) bool {
+	if !data.FabricId.IsNull() {
+		return false
+	}
 	if len(data.L3HandoffIpTransits) > 0 {
 		return false
 	}

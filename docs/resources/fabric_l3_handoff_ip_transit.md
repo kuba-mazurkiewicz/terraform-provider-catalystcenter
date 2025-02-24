@@ -15,6 +15,7 @@ Manages Layer 3 Handoffs with IP Transit in Fabric Devices
 ```terraform
 resource "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
   network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
+  fabric_id         = "c4b85bb2-ce3f-4db9-a32b-e439a388ac2f"
   l3_handoff_ip_transits = [
     {
       fabric_id            = "c4b85bb2-ce3f-4db9-a32b-e439a388ac2f"
@@ -36,6 +37,7 @@ resource "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
 
 ### Required
 
+- `fabric_id` (String) ID of the fabric this device belongs to
 - `l3_handoff_ip_transits` (Attributes Set) List of Layer 3 Handoffs with IP Transit (see [below for nested schema](#nestedatt--l3_handoff_ip_transits))
 - `network_device_id` (String) Network device ID of the fabric device
 

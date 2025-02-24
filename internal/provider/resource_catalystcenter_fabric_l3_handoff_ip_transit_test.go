@@ -87,6 +87,7 @@ resource "catalystcenter_transit_network" "test" {
 func testAccCcFabricL3HandoffIPTransitConfig_minimum() string {
 	config := `resource "catalystcenter_fabric_l3_handoff_ip_transit" "test" {` + "\n"
 	config += `	network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"` + "\n"
+	config += `	fabric_id = catalystcenter_fabric_site.test.id` + "\n"
 	config += `	l3_handoff_ip_transits = [{` + "\n"
 	config += `	  fabric_id = catalystcenter_fabric_site.test.id` + "\n"
 	config += `	  transit_network_id = catalystcenter_transit_network.test.id` + "\n"
@@ -104,6 +105,7 @@ func testAccCcFabricL3HandoffIPTransitConfig_minimum() string {
 func testAccCcFabricL3HandoffIPTransitConfig_all() string {
 	config := `resource "catalystcenter_fabric_l3_handoff_ip_transit" "test" {` + "\n"
 	config += `	network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"` + "\n"
+	config += `	fabric_id = catalystcenter_fabric_site.test.id` + "\n"
 	config += `	l3_handoff_ip_transits = [{` + "\n"
 	config += `	  fabric_id = catalystcenter_fabric_site.test.id` + "\n"
 	config += `	  transit_network_id = catalystcenter_transit_network.test.id` + "\n"

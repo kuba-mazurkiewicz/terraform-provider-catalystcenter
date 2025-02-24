@@ -79,6 +79,10 @@ func (r *FabricL3HandoffIPTransitResource) Schema(ctx context.Context, req resou
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
+			"fabric_id": schema.StringAttribute{
+				MarkdownDescription: helpers.NewAttributeDescription("ID of the fabric this device belongs to").String,
+				Required:            true,
+			},
 			"l3_handoff_ip_transits": schema.SetNestedAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("List of Layer 3 Handoffs with IP Transit").String,
 				Required:            true,

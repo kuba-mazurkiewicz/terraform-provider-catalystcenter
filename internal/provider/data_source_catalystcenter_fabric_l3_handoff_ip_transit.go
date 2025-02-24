@@ -65,6 +65,10 @@ func (d *FabricL3HandoffIPTransitDataSource) Schema(ctx context.Context, req dat
 				MarkdownDescription: "Network device ID of the fabric device",
 				Required:            true,
 			},
+			"fabric_id": schema.StringAttribute{
+				MarkdownDescription: "ID of the fabric this device belongs to",
+				Computed:            true,
+			},
 			"l3_handoff_ip_transits": schema.SetNestedAttribute{
 				MarkdownDescription: "List of Layer 3 Handoffs with IP Transit",
 				Computed:            true,

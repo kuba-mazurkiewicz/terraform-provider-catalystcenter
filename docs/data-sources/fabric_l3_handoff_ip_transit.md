@@ -29,6 +29,7 @@ data "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
 
 ### Read-Only
 
+- `fabric_id` (String) ID of the fabric this device belongs to
 - `l3_handoff_ip_transits` (Attributes Set) List of Layer 3 Handoffs with IP Transit (see [below for nested schema](#nestedatt--l3_handoff_ip_transits))
 
 <a id="nestedatt--l3_handoff_ip_transits"></a>
