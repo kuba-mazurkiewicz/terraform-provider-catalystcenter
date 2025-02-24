@@ -13,6 +13,7 @@ attributes:
   - tf_name: fabric_id
     mandatory: true
     requires_replace: true
+    write_only: true
     query_param: true
     delete_query_param: true
     query_param_name: fabricId
@@ -20,9 +21,11 @@ attributes:
     type: String
     description: ID of the fabric the device is assigned to
     example: e02d9911-b0a7-435b-bb46-079d877d7b3e
+    test_value: catalystcenter_fabric_site.test.id
   - tf_name: network_device_id
     id: true
     query_param: true
+    write_only: true
     delete_query_param: true
     query_param_name: networkDeviceId
     delete_query_param_name: networkDeviceId
