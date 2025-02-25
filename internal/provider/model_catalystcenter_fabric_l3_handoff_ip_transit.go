@@ -353,9 +353,6 @@ func (data *FabricL3HandoffIPTransit) fromBodyUnknowns(ctx context.Context, res 
 
 // Section below is generated&owned by "gen/generator.go". //template:begin isNull
 func (data *FabricL3HandoffIPTransit) isNull(ctx context.Context, res gjson.Result) bool {
-	if !data.FabricId.IsNull() {
-		return false
-	}
 	if len(data.L3HandoffIpTransits) > 0 {
 		return false
 	}

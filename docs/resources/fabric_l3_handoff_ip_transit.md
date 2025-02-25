@@ -76,5 +76,5 @@ Read-Only:
 Import is supported using the following syntax:
 
 ```shell
-terraform import catalystcenter_fabric_l3_handoff_ip_transit.example "<network_device_id>"
+terraform import catalystcenter_fabric_l3_handoff_ip_transit.example "<network_device_id>,<fabric_id>"
 ```

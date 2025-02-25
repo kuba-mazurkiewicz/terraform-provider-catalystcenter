@@ -16,6 +16,7 @@ This data source can read the Fabric L3 Handoff IP Transit.
 data "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
   id                = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
   network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1"
+  fabric_id         = "c4b85bb2-ce3f-4db9-a32b-e439a388ac2f"
 }
 ```
 
@@ -24,12 +25,12 @@ data "catalystcenter_fabric_l3_handoff_ip_transit" "example" {
 
 ### Required
 
+- `fabric_id` (String) ID of the fabric this device belongs to
 - `id` (String) The id of the object
 - `network_device_id` (String) Network device ID of the fabric device
 
 ### Read-Only
 
-- `fabric_id` (String) ID of the fabric this device belongs to
 - `l3_handoff_ip_transits` (Attributes Set) List of Layer 3 Handoffs with IP Transit (see [below for nested schema](#nestedatt--l3_handoff_ip_transits))
 
 <a id="nestedatt--l3_handoff_ip_transits"></a>

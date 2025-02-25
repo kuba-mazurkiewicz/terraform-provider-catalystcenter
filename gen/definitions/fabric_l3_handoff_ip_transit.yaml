@@ -11,12 +11,19 @@ test_tags: [SDA]
 attributes:
   - tf_name: network_device_id
     query_param: true
+    delete_query_param: true
+    query_param_name: networkDeviceId
+    delete_query_param_name: networkDeviceId
     write_only: true
     id: true
     description: Network device ID of the fabric device
     type: String
     example: 5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1
   - tf_name: fabric_id
+    query_param: true
+    delete_query_param: true
+    query_param_name: fabricId
+    delete_query_param_name: fabricId
     type: String
     write_only: true
     mandatory: true

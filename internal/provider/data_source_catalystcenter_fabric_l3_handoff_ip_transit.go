@@ -67,7 +67,7 @@ func (d *FabricL3HandoffIPTransitDataSource) Schema(ctx context.Context, req dat
 			},
 			"fabric_id": schema.StringAttribute{
 				MarkdownDescription: "ID of the fabric this device belongs to",
-				Computed:            true,
+				Required:            true,
 			},
 			"l3_handoff_ip_transits": schema.SetNestedAttribute{
 				MarkdownDescription: "List of Layer 3 Handoffs with IP Transit",
@@ -157,7 +157,7 @@ func (d *FabricL3HandoffIPTransitDataSource) Read(ctx context.Context, req datas
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Read", config.Id.String()))
 
 	params := ""
-	params += "?=" + url.QueryEscape(config.NetworkDeviceId.ValueString())
+	params += "?networkDeviceId=" + url.QueryEscape(config.NetworkDeviceId.ValueString()) + "&fabricId=" + url.QueryEscape(config.FabricId.ValueString())
 	res, err := d.client.Get(config.getPath() + params)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Failed to retrieve object, got error: %s", err))
