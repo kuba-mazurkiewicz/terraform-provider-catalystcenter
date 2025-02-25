@@ -210,7 +210,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 							{{- else if and (len .DefaultValue) (eq .Type "String")}}
 							Default:             stringdefault.StaticString("{{.DefaultValue}}"),
 							{{- end}}
-							{{- if .RequiresReplace}}
+							{{- if (and .RequiresReplace (not $.RootList))}}
 							PlanModifiers: []planmodifier.{{if eq .Type "StringList"}}List{{else}}{{.Type}}{{end}}{
 								{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 							},
@@ -282,7 +282,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 										{{- else if and (len .DefaultValue) (eq .Type "String")}}
 										Default:             stringdefault.StaticString("{{.DefaultValue}}"),
 										{{- end}}
-										{{- if .RequiresReplace}}
+										{{- if (and .RequiresReplace (not $.RootList))}}
 										PlanModifiers: []planmodifier.{{if eq .Type "StringList"}}List{{else}}{{.Type}}{{end}}{
 											{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 										},
@@ -354,7 +354,7 @@ func (r *{{camelCase .Name}}Resource) Schema(ctx context.Context, req resource.S
 													{{- else if and (len .DefaultValue) (eq .Type "String")}}
 													Default:             stringdefault.StaticString("{{.DefaultValue}}"),
 													{{- end}}
-													{{- if .RequiresReplace}}
+													{{- if (and .RequiresReplace (not $.RootList))}}
 													PlanModifiers: []planmodifier.{{if eq .Type "StringList"}}List{{else}}{{.Type}}{{end}}{
 														{{if eq .Type "StringList"}}list{{else}}{{snakeCase .Type}}{{end}}planmodifier.RequiresReplace(),
 													},
@@ -662,6 +662,13 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	{{- if isNestedListSet .}}
 	{{- $items = .TfName }}
 	{{- end}}
+	{{- if .Attributes}}
+	{{ if hasRequiresReplace .Attributes }}
+	toBeReplaced := true
+	{{- else}}
+	toBeReplaced := false
+	{{- end}}
+	{{- end}}
 	{{- end}}
 
 	// Initialize toDelete, toCreate, and toUpdate with empty slices
@@ -711,10 +718,15 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 		if stateItem, exists := stateMap[planKey]; exists {
 			// Exists in both, check if different
 			if !reflect.DeepEqual(planItem, stateItem) {
-				// Update planItem but ensure ID comes from stateItem
-				planItem.Id = stateItem.Id
-				planMap[planKey] = planItem // Store back in planMap
-				toUpdate.{{toGoName $items}} = append(toUpdate.{{toGoName $items}}, planItem)
+				if toBeReplaced {
+					toDelete.{{toGoName $items}} = append(toDelete.{{toGoName $items}}, stateItem)
+					toCreate.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, planItem)
+				} else {
+					// Update planItem but ensure ID comes from stateItem
+					planItem.Id = stateItem.Id
+					planMap[planKey] = planItem // Store back in planMap
+					toUpdate.{{toGoName $items}} = append(toUpdate.{{toGoName $items}}, planItem)
+				}
 			}
 		} else {
 			// Exists only in plan → New item

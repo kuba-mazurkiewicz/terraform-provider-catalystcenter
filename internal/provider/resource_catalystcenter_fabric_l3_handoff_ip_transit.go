@@ -82,6 +82,9 @@ func (r *FabricL3HandoffIPTransitResource) Schema(ctx context.Context, req resou
 			"fabric_id": schema.StringAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("ID of the fabric this device belongs to").String,
 				Required:            true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"l3_handoff_ip_transits": schema.SetNestedAttribute{
 				MarkdownDescription: helpers.NewAttributeDescription("List of Layer 3 Handoffs with IP Transit").String,
@@ -265,6 +268,8 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 
+	toBeReplaced := true
+
 	// Initialize toDelete, toCreate, and toUpdate with empty slices
 	var toDelete = FabricL3HandoffIPTransit{
 		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
@@ -302,10 +307,15 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 		if stateItem, exists := stateMap[planKey]; exists {
 			// Exists in both, check if different
 			if !reflect.DeepEqual(planItem, stateItem) {
-				// Update planItem but ensure ID comes from stateItem
-				planItem.Id = stateItem.Id
-				planMap[planKey] = planItem // Store back in planMap
-				toUpdate.L3HandoffIpTransits = append(toUpdate.L3HandoffIpTransits, planItem)
+				if toBeReplaced {
+					toDelete.L3HandoffIpTransits = append(toDelete.L3HandoffIpTransits, stateItem)
+					toCreate.L3HandoffIpTransits = append(toCreate.L3HandoffIpTransits, planItem)
+				} else {
+					// Update planItem but ensure ID comes from stateItem
+					planItem.Id = stateItem.Id
+					planMap[planKey] = planItem // Store back in planMap
+					toUpdate.L3HandoffIpTransits = append(toUpdate.L3HandoffIpTransits, planItem)
+				}
 			}
 		} else {
 			// Exists only in plan → New item

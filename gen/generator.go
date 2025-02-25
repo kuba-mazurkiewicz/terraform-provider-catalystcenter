@@ -302,6 +302,21 @@ func HasComputedRefreshValue(attributes []YamlConfigAttribute) bool {
 	return false
 }
 
+// Templating helper function to return true if any of the attributes has `requires_replace: true`
+func HasRequiresReplace(attributes []YamlConfigAttribute) bool {
+	for _, attr := range attributes {
+		if attr.RequiresReplace {
+			return true
+		}
+		if len(attr.Attributes) > 0 {
+			if HasRequiresReplace(attr.Attributes) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // Templating helper function to return the ID attribute
 func GetId(attributes []YamlConfigAttribute) YamlConfigAttribute {
 	for _, attr := range attributes {
@@ -577,6 +592,7 @@ var functions = template.FuncMap{
 	"path":                     BuildPath,
 	"hasId":                    HasId,
 	"hasReference":             HasReference,
+	"hasRequiresReplace":       HasRequiresReplace,
 	"hasQueryParam":            HasQueryParam,
 	"hasDeleteQueryParam":      HasDeleteQueryParam,
 	"generateQueryParamString": GenerateQueryParamString,

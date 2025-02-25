@@ -11,6 +11,7 @@ test_tags: [SDA]
 attributes:
   - tf_name: network_device_id
     query_param: true
+    requires_replace: true
     delete_query_param: true
     query_param_name: networkDeviceId
     delete_query_param_name: networkDeviceId
@@ -21,6 +22,7 @@ attributes:
     example: 5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1
   - tf_name: fabric_id
     query_param: true
+    requires_replace: true
     delete_query_param: true
     query_param_name: fabricId
     delete_query_param_name: fabricId
@@ -45,36 +47,43 @@ attributes:
       - model_name: fabricId
         type: String
         mandatory: true
+        requires_replace: true
         description: ID of the fabric this device belongs to
         example: c4b85bb2-ce3f-4db9-a32b-e439a388ac2f
         test_value: catalystcenter_fabric_site.test.id
       - model_name: transitNetworkId
         type: String
         mandatory: true
+        requires_replace: true
         description: ID of the transit network of the layer 3 handoff ip transit
         example: d71c847b-e9c2-4f13-928c-223372b72b06
         test_value: catalystcenter_transit_network.test.id
       - model_name: networkDeviceId
         mandatory: true
+        requires_replace: true
         description: Network device ID of the fabric device
         type: String
         example: 5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b1
       - model_name: interfaceName
         type: String
+        requires_replace: true
         description:  Interface name of the layer 3 handoff ip transit
         example: TenGigabitEthernet1/0/2
       - model_name: externalConnectivityIpPoolName
         type: String
+        requires_replace: true
         description:  External connectivity ip pool will be used by Catalyst Center to allocate IP address for the connection between the border node and peer
         example: "MyPool1"
         exclude_test: true
       - model_name: virtualNetworkName
+        requires_replace: true
         mandatory: true
         type: String
         description: Name of the virtual network associated with this fabric site
         example: SDA_VN1
       - model_name: vlanId
         type: Int64
+        requires_replace: true
         id: true
         mandatory: true
         description: VLAN number for the Switch Virtual Interface (SVI) used to establish BGP peering with the external domain for the virtual network. Allowed VLAN range is 2-4094 except for reserved vlans (1, 1002-1005, 2046, 4094)
@@ -87,20 +96,24 @@ attributes:
         example: 1400
       - model_name: localIpAddress
         type: String
+        requires_replace: true
         description: Local ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name
         example: "10.0.0.1/24"
       - model_name: remoteIpAddress
         response_data_path: remoteIpAddress
+        requires_replace: true
         type: String
         description: Remote ipv4 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name
         example: "10.0.0.2/24"
       - model_name: localIpv6Address
         response_data_path: localIpv6Address
+        requires_replace: true
         type: String
         description: Local ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name
         exclude_test: true
       - model_name: remoteIpv6Address
         response_data_path: remoteIpv6Address
+        requires_replace: true
         type: String
         description: Remote ipv6 address for the selected virtual network. Enter the IP addresses and subnet mask in the CIDR notation (IP address/prefix-length). Not applicable if you have already provided an external connectivity ip pool name
         exclude_test: true
