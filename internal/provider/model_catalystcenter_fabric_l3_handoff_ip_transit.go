@@ -351,6 +351,85 @@ func (data *FabricL3HandoffIPTransit) fromBodyUnknowns(ctx context.Context, res 
 
 // End of section. //template:end fromBodyUnknowns
 
+// Section below is generated&owned by "gen/generator.go". //template:begin findObjectsToBeReplaced
+
+// Check if single object within bulk requires replace due to `requires_replace`
+// Since here we assume object has changed, it must be present in both state and plan (data)
+func (data FabricL3HandoffIPTransit) findObjectsToBeReplaced(ctx context.Context, state FabricL3HandoffIPTransit) FabricL3HandoffIPTransit {
+	// Prepare empty object to be filled in with objects that require replace
+	var toBeReplaced = FabricL3HandoffIPTransit{
+		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
+	}
+
+	planMap := make(map[string]FabricL3HandoffIPTransitL3HandoffIpTransits)
+	stateMap := make(map[string]FabricL3HandoffIPTransitL3HandoffIpTransits)
+
+	// Populate state map
+	for _, v := range state.L3HandoffIpTransits {
+		stateMap[strconv.FormatInt(v.VlanId.ValueInt64(), 10)] = v
+	}
+
+	// Populate plan map
+	for _, v := range data.L3HandoffIpTransits {
+		planMap[strconv.FormatInt(v.VlanId.ValueInt64(), 10)] = v
+	}
+
+	// Iterate over all objects in plan
+	for planKey, planItem := range planMap {
+		if stateItem, exists := stateMap[planKey]; exists {
+			// Check if any field marked as `requires_replace` has changed
+			if planItem.FabricId != stateItem.FabricId {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.TransitNetworkId != stateItem.TransitNetworkId {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.NetworkDeviceId != stateItem.NetworkDeviceId {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.InterfaceName != stateItem.InterfaceName {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.ExternalConnectivityIpPoolName != stateItem.ExternalConnectivityIpPoolName {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.VirtualNetworkName != stateItem.VirtualNetworkName {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.VlanId != stateItem.VlanId {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.LocalIpAddress != stateItem.LocalIpAddress {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.RemoteIpAddress != stateItem.RemoteIpAddress {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.LocalIpv6Address != stateItem.LocalIpv6Address {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+			if planItem.RemoteIpv6Address != stateItem.RemoteIpv6Address {
+				toBeReplaced.L3HandoffIpTransits = append(toBeReplaced.L3HandoffIpTransits, planItem)
+				continue
+			}
+		}
+	}
+
+	return toBeReplaced
+}
+
+// End of section. //template:end findObjectsToBeReplaced
+
 // Section below is generated&owned by "gen/generator.go". //template:begin isNull
 func (data *FabricL3HandoffIPTransit) isNull(ctx context.Context, res gjson.Result) bool {
 	if len(data.L3HandoffIpTransits) > 0 {

@@ -255,8 +255,6 @@ func (r *FabricPortAssignmentResource) Update(ctx context.Context, req resource.
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 
-	toBeReplaced := false
-
 	// Initialize toDelete, toCreate, and toUpdate with empty slices
 	var toDelete = FabricPortAssignment{
 		PortAssignments: []FabricPortAssignmentPortAssignments{},
@@ -294,15 +292,10 @@ func (r *FabricPortAssignmentResource) Update(ctx context.Context, req resource.
 		if stateItem, exists := stateMap[planKey]; exists {
 			// Exists in both, check if different
 			if !reflect.DeepEqual(planItem, stateItem) {
-				if toBeReplaced {
-					toDelete.PortAssignments = append(toDelete.PortAssignments, stateItem)
-					toCreate.PortAssignments = append(toCreate.PortAssignments, planItem)
-				} else {
-					// Update planItem but ensure ID comes from stateItem
-					planItem.Id = stateItem.Id
-					planMap[planKey] = planItem // Store back in planMap
-					toUpdate.PortAssignments = append(toUpdate.PortAssignments, planItem)
-				}
+				// Update planItem but ensure ID comes from stateItem
+				planItem.Id = stateItem.Id
+				planMap[planKey] = planItem // Store back in planMap
+				toUpdate.PortAssignments = append(toUpdate.PortAssignments, planItem)
 			}
 		} else {
 			// Exists only in plan → New item

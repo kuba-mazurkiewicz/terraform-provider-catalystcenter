@@ -268,8 +268,6 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Update", plan.Id.ValueString()))
 
-	toBeReplaced := true
-
 	// Initialize toDelete, toCreate, and toUpdate with empty slices
 	var toDelete = FabricL3HandoffIPTransit{
 		L3HandoffIpTransits: []FabricL3HandoffIPTransitL3HandoffIpTransits{},
@@ -302,12 +300,19 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 		}
 	}
 
+	tflog.Debug(ctx, fmt.Sprintf("toDelete11 %v", toDelete))
+
+	// Get objects that need to be replaced due to `requires_replace` flag
+	toBeReplaced := plan.findObjectsToBeReplaced(ctx, state)
+
+	tflog.Debug(ctx, fmt.Sprintf("toBeReplaced %v", toBeReplaced))
+
 	// Find items to create and update
 	for planKey, planItem := range planMap {
 		if stateItem, exists := stateMap[planKey]; exists {
 			// Exists in both, check if different
 			if !reflect.DeepEqual(planItem, stateItem) {
-				if toBeReplaced {
+				if len(toBeReplaced.L3HandoffIpTransits) > 0 {
 					toDelete.L3HandoffIpTransits = append(toDelete.L3HandoffIpTransits, stateItem)
 					toCreate.L3HandoffIpTransits = append(toCreate.L3HandoffIpTransits, planItem)
 				} else {

@@ -839,6 +839,70 @@ for i := range data.{{toGoName .TfName}} {
 }
 // End of section. //template:end fromBodyUnknowns
 
+// Section below is generated&owned by "gen/generator.go". //template:begin findObjectsToBeReplaced
+
+{{if and .RootList (hasRequiresReplace .Attributes) }}
+// Check if single object within bulk requires replace due to `requires_replace`
+// Since here we assume object has changed, it must be present in both state and plan (data)
+func (data {{camelCase .Name}}) findObjectsToBeReplaced(ctx context.Context, state {{camelCase .Name}}) {{camelCase .Name}} {
+	{{- $items := "" }}
+	{{- range .Attributes}}
+	{{- if isNestedListSet .}}
+	{{- $items = .TfName }}
+	{{- end}}
+	{{- end}}
+	// Prepare empty object to be filled in with objects that require replace
+	var toBeReplaced = {{camelCase .Name}}{
+		{{toGoName $items}}: []{{camelCase .Name}}{{toGoName $items}}{},
+	}
+
+	planMap := make(map[string]{{camelCase .Name}}{{toGoName $items}})
+	stateMap := make(map[string]{{camelCase .Name}}{{toGoName $items}})
+
+	// Populate state map
+	for _, v := range state.{{toGoName $items}} {
+		{{- range .Attributes}}
+		{{- $id := getId .Attributes}}
+		{{- if not (eq (toGoName $id.TfName) "") }}
+		stateMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()){{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		{{- end}}
+		{{- end}}
+	}
+
+	// Populate plan map
+	for _, v := range data.{{toGoName $items}} {
+		{{- range .Attributes}}
+		{{- $id := getId .Attributes}}
+		{{- if not (eq (toGoName $id.TfName) "") }}
+		planMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = v
+		{{- end}}
+		{{- end}}
+	}
+
+	// Iterate over all objects in plan
+	for planKey, planItem := range planMap {
+		if stateItem, exists := stateMap[planKey]; exists {
+			// Check if any field marked as `requires_replace` has changed
+			{{- range .Attributes}}
+				{{- if eq .TfName $items}}
+				{{- range .Attributes}}
+				{{- if .RequiresReplace }}
+					if planItem.{{toGoName .TfName}} != stateItem.{{toGoName .TfName}} {
+						toBeReplaced.{{toGoName $items}} = append(toBeReplaced.{{toGoName $items}}, planItem)
+						continue
+					}
+				{{- end}}
+				{{- end}}
+				{{- end}}
+			{{- end}}
+		}
+	}
+
+	return toBeReplaced
+}
+{{- end}}
+
+// End of section. //template:end findObjectsToBeReplaced
 
 // Section below is generated&owned by "gen/generator.go". //template:begin isNull
 func (data *{{camelCase .Name}}) isNull(ctx context.Context, res gjson.Result) bool {

@@ -662,13 +662,6 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	{{- if isNestedListSet .}}
 	{{- $items = .TfName }}
 	{{- end}}
-	{{- if .Attributes}}
-	{{ if hasRequiresReplace .Attributes }}
-	toBeReplaced := true
-	{{- else}}
-	toBeReplaced := false
-	{{- end}}
-	{{- end}}
 	{{- end}}
 
 	// Initialize toDelete, toCreate, and toUpdate with empty slices
@@ -713,12 +706,18 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 		}
 	}
 
+	{{- if hasRequiresReplace $.Attributes}}
+	// Get objects that need to be replaced due to `requires_replace` flag
+	toBeReplaced := plan.findObjectsToBeReplaced(ctx, state)
+	{{- end}}
+
 	// Find items to create and update
 	for planKey, planItem := range planMap {
 		if stateItem, exists := stateMap[planKey]; exists {
 			// Exists in both, check if different
 			if !reflect.DeepEqual(planItem, stateItem) {
-				if toBeReplaced {
+				{{- if hasRequiresReplace $.Attributes}}
+				if len(toBeReplaced.{{toGoName $items}}) > 0 {
 					toDelete.{{toGoName $items}} = append(toDelete.{{toGoName $items}}, stateItem)
 					toCreate.{{toGoName $items}} = append(toCreate.{{toGoName $items}}, planItem)
 				} else {
@@ -727,6 +726,12 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 					planMap[planKey] = planItem // Store back in planMap
 					toUpdate.{{toGoName $items}} = append(toUpdate.{{toGoName $items}}, planItem)
 				}
+				{{- else}}
+				// Update planItem but ensure ID comes from stateItem
+				planItem.Id = stateItem.Id
+				planMap[planKey] = planItem // Store back in planMap
+				toUpdate.{{toGoName $items}} = append(toUpdate.{{toGoName $items}}, planItem)
+				{{- end}}
 			}
 		} else {
 			// Exists only in plan → New item
