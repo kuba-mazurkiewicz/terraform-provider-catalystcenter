@@ -299,13 +299,8 @@ func (r *FabricL3HandoffIPTransitResource) Update(ctx context.Context, req resou
 			toDelete.L3HandoffIpTransits = append(toDelete.L3HandoffIpTransits, stateItem)
 		}
 	}
-
-	tflog.Debug(ctx, fmt.Sprintf("toDelete11 %v", toDelete))
-
 	// Get objects that need to be replaced due to `requires_replace` flag
 	toBeReplaced := plan.findObjectsToBeReplaced(ctx, state)
-
-	tflog.Debug(ctx, fmt.Sprintf("toBeReplaced %v", toBeReplaced))
 
 	// Find items to create and update
 	for planKey, planItem := range planMap {
