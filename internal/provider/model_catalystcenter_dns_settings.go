@@ -117,13 +117,13 @@ func (data *DNSSettings) updateFromBody(ctx context.Context, res gjson.Result) {
 // Known values are not changed (usual for Computed attributes with UseStateForUnknown or with Default).
 func (data *DNSSettings) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
 	if data.DomainName.IsUnknown() {
-		if value := res.Get("response.dns.domainName"); value.Exists() && !data.DomainName.IsNull() {
+		if value := res.Get("response.dns.domainName"); value.Exists() {
 			data.DomainName = types.StringValue(value.String())
 		} else {
 			data.DomainName = types.StringNull()
 		}
 	}
-	if value := res.Get("response.dns.dnsServers"); value.Exists() && !data.DnsServers.IsNull() {
+	if value := res.Get("response.dns.dnsServers"); value.Exists() {
 		data.DnsServers = helpers.GetStringSet(value.Array())
 	} else {
 		data.DnsServers = types.SetNull(types.StringType)

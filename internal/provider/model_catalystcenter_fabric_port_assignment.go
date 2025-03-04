@@ -122,12 +122,6 @@ func (data FabricPortAssignment) toBody(ctx context.Context, state FabricPortAss
 func (data *FabricPortAssignment) fromBody(ctx context.Context, res gjson.Result) {
 
 	res = res.Get("response")
-	// Retrieve the 'id' attribute, if Data Source doesn't require id
-	if value := res.Get(""); value.Exists() {
-		data.Id = types.StringValue(value.String())
-	} else {
-		data.Id = types.StringNull()
-	}
 	if value := res; value.Exists() && len(value.Array()) > 0 {
 		data.PortAssignments = make([]FabricPortAssignmentPortAssignments, 0)
 		value.ForEach(func(k, v gjson.Result) bool {
@@ -303,7 +297,7 @@ func (data *FabricPortAssignment) fromBodyUnknowns(ctx context.Context, res gjso
 			},
 		)
 		if data.PortAssignments[i].Id.IsUnknown() {
-			if value := r.Get("id"); value.Exists() && !data.PortAssignments[i].Id.IsNull() {
+			if value := r.Get("id"); value.Exists() {
 				data.PortAssignments[i].Id = types.StringValue(value.String())
 			} else {
 				data.PortAssignments[i].Id = types.StringNull()

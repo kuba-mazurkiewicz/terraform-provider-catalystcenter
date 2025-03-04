@@ -44,7 +44,7 @@ func TestAccDataSourceCcFabricPortAssignment(t *testing.T) {
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceCcFabricPortAssignmentConfig(),
+				Config: testAccDataSourceCcFabricPortAssignmentPrerequisitesConfig + testAccDataSourceCcFabricPortAssignmentConfig(),
 				Check:  resource.ComposeTestCheckFunc(checks...),
 			},
 		},
@@ -54,12 +54,25 @@ func TestAccDataSourceCcFabricPortAssignment(t *testing.T) {
 // End of section. //template:end testAccDataSource
 
 // Section below is generated&owned by "gen/generator.go". //template:begin testPrerequisites
+const testAccDataSourceCcFabricPortAssignmentPrerequisitesConfig = `
+resource "catalystcenter_area" "test" {
+  name        = "Area1"
+  parent_name = "Global"
+}
+resource "catalystcenter_fabric_site" "test" {
+  site_id                     = catalystcenter_area.test.id
+  pub_sub_enabled             = false
+  authentication_profile_name = "No Authentication"
+}
+
+`
+
 // End of section. //template:end testPrerequisites
 
 // Section below is generated&owned by "gen/generator.go". //template:begin testAccDataSourceConfig
 func testAccDataSourceCcFabricPortAssignmentConfig() string {
 	config := `resource "catalystcenter_fabric_port_assignment" "test" {` + "\n"
-	config += `	fabric_id = "e02d9911-b0a7-435b-bb46-079d877d7b3e"` + "\n"
+	config += `	fabric_id = catalystcenter_fabric_site.test.id` + "\n"
 	config += `	network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b"` + "\n"
 	config += `	port_assignments = [{` + "\n"
 	config += `	  fabric_id = catalystcenter_fabric_site.test.id` + "\n"
@@ -74,9 +87,9 @@ func testAccDataSourceCcFabricPortAssignmentConfig() string {
 
 	config += `
 		data "catalystcenter_fabric_port_assignment" "test" {
-			fabric_id = "e02d9911-b0a7-435b-bb46-079d877d7b3e"
+			id = catalystcenter_fabric_port_assignment.test.id
+			fabric_id = catalystcenter_fabric_site.test.id
 			network_device_id = "5e6f7b3a-2b0b-4a7d-8b1c-0d4b1cd5e1b"
-			depends_on = [catalystcenter_fabric_port_assignment.test]
 		}
 	`
 	return config

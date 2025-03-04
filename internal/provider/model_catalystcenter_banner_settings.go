@@ -114,14 +114,14 @@ func (data *BannerSettings) updateFromBody(ctx context.Context, res gjson.Result
 // Known values are not changed (usual for Computed attributes with UseStateForUnknown or with Default).
 func (data *BannerSettings) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
 	if data.Type.IsUnknown() {
-		if value := res.Get("response.banner.type"); value.Exists() && !data.Type.IsNull() {
+		if value := res.Get("response.banner.type"); value.Exists() {
 			data.Type = types.StringValue(value.String())
 		} else {
 			data.Type = types.StringNull()
 		}
 	}
 	if data.Message.IsUnknown() {
-		if value := res.Get("response.banner.message"); value.Exists() && !data.Message.IsNull() {
+		if value := res.Get("response.banner.message"); value.Exists() {
 			data.Message = types.StringValue(value.String())
 		} else {
 			data.Message = types.StringNull()

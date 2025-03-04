@@ -102,7 +102,7 @@ func (data *NTPSettings) updateFromBody(ctx context.Context, res gjson.Result) {
 // fromBodyUnknowns updates the Unknown Computed tfstate values from a JSON.
 // Known values are not changed (usual for Computed attributes with UseStateForUnknown or with Default).
 func (data *NTPSettings) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
-	if value := res.Get("response.ntp.servers"); value.Exists() && !data.Servers.IsNull() {
+	if value := res.Get("response.ntp.servers"); value.Exists() {
 		data.Servers = helpers.GetStringSet(value.Array())
 	} else {
 		data.Servers = types.SetNull(types.StringType)

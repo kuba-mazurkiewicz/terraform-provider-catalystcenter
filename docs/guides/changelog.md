@@ -9,6 +9,7 @@ description: |-
 
 ## 0.2.1 (unreleased)
 
+- Add support for adding and deleting interfaces under existing `catalystcenter_fabric_port_assignment` resource
 - Add `reprovision` attribute to `catalystcenter_fabric_provision_device`
 
 ## 0.2.0

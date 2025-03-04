@@ -100,7 +100,7 @@ func (data *TimeZoneSettings) updateFromBody(ctx context.Context, res gjson.Resu
 // Known values are not changed (usual for Computed attributes with UseStateForUnknown or with Default).
 func (data *TimeZoneSettings) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
 	if data.Identifier.IsUnknown() {
-		if value := res.Get("response.timeZone.identifier"); value.Exists() && !data.Identifier.IsNull() {
+		if value := res.Get("response.timeZone.identifier"); value.Exists() {
 			data.Identifier = types.StringValue(value.String())
 		} else {
 			data.Identifier = types.StringNull()

@@ -231,66 +231,66 @@ func (data *TelemetrySettings) updateFromBody(ctx context.Context, res gjson.Res
 // Known values are not changed (usual for Computed attributes with UseStateForUnknown or with Default).
 func (data *TelemetrySettings) fromBodyUnknowns(ctx context.Context, res gjson.Result) {
 	if data.EnableWiredDataCollection.IsUnknown() {
-		if value := res.Get("response.wiredDataCollection.enableWiredDataCollection"); value.Exists() && !data.EnableWiredDataCollection.IsNull() {
+		if value := res.Get("response.wiredDataCollection.enableWiredDataCollection"); value.Exists() {
 			data.EnableWiredDataCollection = types.BoolValue(value.Bool())
 		} else {
 			data.EnableWiredDataCollection = types.BoolNull()
 		}
 	}
 	if data.EnableWirelessTelemetry.IsUnknown() {
-		if value := res.Get("response.wirelessTelemetry.enableWirelessTelemetry"); value.Exists() && !data.EnableWirelessTelemetry.IsNull() {
+		if value := res.Get("response.wirelessTelemetry.enableWirelessTelemetry"); value.Exists() {
 			data.EnableWirelessTelemetry = types.BoolValue(value.Bool())
 		} else {
 			data.EnableWirelessTelemetry = types.BoolNull()
 		}
 	}
 	if data.UseBuiltinTrapServer.IsUnknown() {
-		if value := res.Get("response.snmpTraps.useBuiltinTrapServer"); value.Exists() && !data.UseBuiltinTrapServer.IsNull() {
+		if value := res.Get("response.snmpTraps.useBuiltinTrapServer"); value.Exists() {
 			data.UseBuiltinTrapServer = types.BoolValue(value.Bool())
 		} else {
 			data.UseBuiltinTrapServer = types.BoolNull()
 		}
 	}
-	if value := res.Get("response.snmpTraps.externalTrapServers"); value.Exists() && !data.ExternalTrapServers.IsNull() {
+	if value := res.Get("response.snmpTraps.externalTrapServers"); value.Exists() {
 		data.ExternalTrapServers = helpers.GetStringSet(value.Array())
 	} else {
 		data.ExternalTrapServers = types.SetNull(types.StringType)
 	}
 	if data.UseBuiltinSyslogServer.IsUnknown() {
-		if value := res.Get("response.syslogs.useBuiltinSyslogServer"); value.Exists() && !data.UseBuiltinSyslogServer.IsNull() {
+		if value := res.Get("response.syslogs.useBuiltinSyslogServer"); value.Exists() {
 			data.UseBuiltinSyslogServer = types.BoolValue(value.Bool())
 		} else {
 			data.UseBuiltinSyslogServer = types.BoolNull()
 		}
 	}
-	if value := res.Get("response.syslogs.externalSyslogServers"); value.Exists() && !data.ExternalSyslogServers.IsNull() {
+	if value := res.Get("response.syslogs.externalSyslogServers"); value.Exists() {
 		data.ExternalSyslogServers = helpers.GetStringSet(value.Array())
 	} else {
 		data.ExternalSyslogServers = types.SetNull(types.StringType)
 	}
 	if data.NetflowCollector.IsUnknown() {
-		if value := res.Get("response.applicationVisibility.collector.collectorType"); value.Exists() && !data.NetflowCollector.IsNull() {
+		if value := res.Get("response.applicationVisibility.collector.collectorType"); value.Exists() {
 			data.NetflowCollector = types.StringValue(value.String())
 		} else {
 			data.NetflowCollector = types.StringNull()
 		}
 	}
 	if data.NetflowCollectorIpAddress.IsUnknown() {
-		if value := res.Get("response.applicationVisibility.collector.addres"); value.Exists() && !data.NetflowCollectorIpAddress.IsNull() {
+		if value := res.Get("response.applicationVisibility.collector.addres"); value.Exists() {
 			data.NetflowCollectorIpAddress = types.StringValue(value.String())
 		} else {
 			data.NetflowCollectorIpAddress = types.StringNull()
 		}
 	}
 	if data.NetflowCollectorPort.IsUnknown() {
-		if value := res.Get("response.applicationVisibility.collector.port"); value.Exists() && !data.NetflowCollectorPort.IsNull() {
+		if value := res.Get("response.applicationVisibility.collector.port"); value.Exists() {
 			data.NetflowCollectorPort = types.Int64Value(value.Int())
 		} else {
 			data.NetflowCollectorPort = types.Int64Null()
 		}
 	}
 	if data.EnableNetflowCollectorOnDevices.IsUnknown() {
-		if value := res.Get("response.applicationVisibility.enableOnWiredAccessDevices"); value.Exists() && !data.EnableNetflowCollectorOnDevices.IsNull() {
+		if value := res.Get("response.applicationVisibility.enableOnWiredAccessDevices"); value.Exists() {
 			data.EnableNetflowCollectorOnDevices = types.BoolValue(value.Bool())
 		} else {
 			data.EnableNetflowCollectorOnDevices = types.BoolNull()
