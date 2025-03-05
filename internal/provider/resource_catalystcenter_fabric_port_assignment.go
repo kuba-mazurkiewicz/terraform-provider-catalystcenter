@@ -360,10 +360,16 @@ func (r *FabricPortAssignmentResource) Update(ctx context.Context, req resource.
 	if len(toUpdate.PortAssignments) > 0 {
 		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %d", state.Id.ValueString(), len(toUpdate.PortAssignments)))
 		// Sync updated IDs back to plan
-		for i := range plan.PortAssignments {
-			planKey := plan.PortAssignments[i].InterfaceName.ValueString()
-			if updatedItem, exists := planMap[planKey]; exists {
-				plan.PortAssignments[i] = updatedItem // Apply the updated version with correct ID
+		planIndexMap := make(map[string]int)
+		for i, v := range plan.PortAssignments {
+			planIndexMap[v.InterfaceName.ValueString()] = i
+		}
+		for _, item := range toUpdate.PortAssignments {
+			toUpdateKey := item.InterfaceName.ValueString()
+			if updatedItem, exists := planMap[toUpdateKey]; exists {
+				if index, found := planIndexMap[toUpdateKey]; found {
+					plan.PortAssignments[index] = updatedItem // Apply the updated version with correct ID
+				}
 			}
 		}
 

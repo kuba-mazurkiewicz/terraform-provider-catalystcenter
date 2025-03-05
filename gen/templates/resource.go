@@ -820,28 +820,23 @@ func (r *{{camelCase .Name}}Resource) Update(ctx context.Context, req resource.U
 	if len(toUpdate.{{toGoName $items}}) > 0 {
 		tflog.Debug(ctx, fmt.Sprintf("%s: Number of items to update: %d", state.Id.ValueString(), len(toUpdate.{{toGoName $items}})))
 		// Sync updated IDs back to plan
-		for i := range plan.{{toGoName $items}} {
-			{{- range .Attributes}}
-			{{- $id := getId .Attributes}}
-			{{- if not (eq (toGoName $id.TfName) "") }}
-			{{- $noId := not (hasId .Attributes) }}
-			{{- range .Attributes}}
-			{{- if and (not .Computed) (or .Id $noId) }}
-			{{- if eq .Type "Int64"}}
-			planKey := strconv.FormatInt(plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueInt64(), 10)
-			{{- else if eq .Type "Bool"}}
-			planKey := strconv.FormatBool(plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueBool())
-			{{- else if eq .Type "String"}}
-			planKey := plan.{{toGoName $items}}[i].{{toGoName .TfName}}.ValueString()
-			{{- end}}
-			{{- end}}
-			{{- end}}
-			{{- end}}
-			{{- end}}
-			if updatedItem, exists := planMap[planKey]; exists {
-				plan.{{toGoName $items}}[i] = updatedItem // Apply the updated version with correct ID
+		planIndexMap := make(map[string]int)
+		{{- range .Attributes}}
+		{{- $id := getId .Attributes}}
+		{{- if not (eq (toGoName $id.TfName) "") }}
+		for i, v := range plan.{{toGoName $items}} {
+			planIndexMap[{{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}v.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}] = i
+		}
+		for _, item := range toUpdate.{{toGoName $items}} {
+			toUpdateKey := {{$noId := not (hasId .Attributes)}}{{range .Attributes}}{{if not .Computed}}{{if or .Id $noId}}{{if eq .Type "Int64"}}strconv.FormatInt(v.{{toGoName .TfName}}.ValueInt64(), 10){{else if eq .Type "Bool"}}strconv.FormatBool(v.{{toGoName .TfName}}.ValueBool()), {{else if eq .Type "String"}}item.{{toGoName .TfName}}.Value{{.Type}}(){{end}}{{end}}{{end}}{{end}}
+			if updatedItem, exists := planMap[toUpdateKey]; exists {
+				if index, found := planIndexMap[toUpdateKey]; found {
+					plan.{{toGoName $items}}[index] = updatedItem // Apply the updated version with correct ID
+				}
 			}
 		}
+		{{- end}}
+		{{- end}}
 
 		body := toUpdate.toBody(ctx, {{camelCase .Name}}{})
 		params := ""
