@@ -38,6 +38,7 @@ type WirelessDeviceProvision struct {
 	Site               types.String                               `tfsdk:"site"`
 	ManagedApLocations types.Set                                  `tfsdk:"managed_ap_locations"`
 	DynamicInterfaces  []WirelessDeviceProvisionDynamicInterfaces `tfsdk:"dynamic_interfaces"`
+	Reprovision        types.Bool                                 `tfsdk:"reprovision"`
 }
 
 type WirelessDeviceProvisionDynamicInterfaces struct {
@@ -113,6 +114,9 @@ func (data WirelessDeviceProvision) toBody(ctx context.Context, state WirelessDe
 			body, _ = sjson.SetRaw(body, "0.dynamicInterfaces.-1", itemBody)
 		}
 	}
+	if !data.Reprovision.IsNull() {
+		body, _ = sjson.Set(body, "", data.Reprovision.ValueBool())
+	}
 	return body
 }
 
@@ -177,6 +181,11 @@ func (data *WirelessDeviceProvision) fromBody(ctx context.Context, res gjson.Res
 			data.DynamicInterfaces = append(data.DynamicInterfaces, item)
 			return true
 		})
+	}
+	if value := res.Get(""); value.Exists() {
+		data.Reprovision = types.BoolValue(value.Bool())
+	} else {
+		data.Reprovision = types.BoolNull()
 	}
 }
 
@@ -258,6 +267,11 @@ func (data *WirelessDeviceProvision) updateFromBody(ctx context.Context, res gjs
 			data.DynamicInterfaces[i].InterfaceName = types.StringNull()
 		}
 	}
+	if value := res.Get(""); value.Exists() && !data.Reprovision.IsNull() {
+		data.Reprovision = types.BoolValue(value.Bool())
+	} else {
+		data.Reprovision = types.BoolNull()
+	}
 }
 
 // End of section. //template:end updateFromBody
@@ -274,6 +288,9 @@ func (data *WirelessDeviceProvision) isNull(ctx context.Context, res gjson.Resul
 		return false
 	}
 	if len(data.DynamicInterfaces) > 0 {
+		return false
+	}
+	if !data.Reprovision.IsNull() {
 		return false
 	}
 	return true

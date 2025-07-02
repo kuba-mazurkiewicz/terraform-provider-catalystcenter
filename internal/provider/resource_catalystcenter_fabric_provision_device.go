@@ -206,7 +206,7 @@ func (r *FabricProvisionDeviceResource) Update(ctx context.Context, req resource
 		body := plan.toBody(ctx, state)
 		tflog.Debug(ctx, fmt.Sprintf("%s: Beginning Re-Provisioning", plan.Id.ValueString()))
 		params := ""
-		res, err := r.client.Put(plan.getPath()+params, body)
+		res, err := r.client.Put(plan.getPath()+params, body, cc.UseMutex)
 		if err != nil {
 			errorCode := res.Get("response.errorCode").String()
 			if errorCode == "NCDP10000" {
@@ -218,7 +218,7 @@ func (r *FabricProvisionDeviceResource) Update(ctx context.Context, req resource
 				return
 			}
 		}
-		tflog.Debug(ctx, fmt.Sprintf("%s: Fabric Device Re-Provisioning finished successfully", plan.Id.ValueString()))
+		tflog.Debug(ctx, fmt.Sprintf("%s: Device Re-Provisioning finished successfully", plan.Id.ValueString()))
 	}
 
 	tflog.Debug(ctx, fmt.Sprintf("%s: Update finished successfully", plan.Id.ValueString()))

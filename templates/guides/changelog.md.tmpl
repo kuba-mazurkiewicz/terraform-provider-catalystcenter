@@ -9,6 +9,7 @@ description: |-
 
 ## 0.2.11 (unreleased)
 
+- Add `reprovision` attribute to `catalystcenter_wireless_device_provision`
 - Add `catalystcenter_sites` data source to retrieve list of all sites
 
 ## 0.2.10

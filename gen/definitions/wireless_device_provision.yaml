@@ -9,6 +9,8 @@ no_read: true
 no_import: true
 put_no_id: true
 id_from_attribute: true
+device_unreachability_warning: true
+mutex: true
 doc_category: Wireless
 test_tags: [WIRELESS]
 attributes:
@@ -70,4 +72,8 @@ attributes:
       - model_name: interfaceName
         type: String
         description: Interface Name. Required for both AireOS and EWLC.
-       
+  - tf_name: reprovision
+    description: Flag to indicate whether the device should be reprovisioned. If set to `true`, reprovisioning will be triggered on every Terraform apply
+    type: Bool
+    example: false
+    exclude_test: true
